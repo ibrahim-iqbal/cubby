@@ -1,5 +1,5 @@
 import type { CubbyItem, Hit } from '../types';
-import { tokenize, lexicalScore } from './lexical';
+import { tokenize, lexicalScore, recentHits } from './lexical';
 
 // Manual-mode floor (RISKS R3 kill-switch / ARCHITECTURE §6.2): pure
 // keyword overlap, no model involved. Used when the embedding model is
@@ -10,12 +10,7 @@ const MAX_RESULTS = 8;
 
 export function search(query: string, items: CubbyItem[]): Hit[] {
   const q = tokenize(query);
-  if (q.length === 0) {
-    return [...items]
-      .sort((a, b) => b.createdAt - a.createdAt)
-      .slice(0, MAX_RESULTS)
-      .map((item) => ({ item, score: 1, semantic: 1, lexical: 1 }));
-  }
+  if (q.length === 0) return recentHits(items, MAX_RESULTS);
   return items
     .map((item) => {
       const lexical = lexicalScore(q, item.text);

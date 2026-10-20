@@ -86,11 +86,6 @@ export async function deleteItem(id: string): Promise<void> {
   }
 }
 
-/** True once a save has fallen back to memory-only (not persisted across reloads). */
-export function isMemoryOnly(): boolean {
-  return memoryFallback !== null;
-}
-
 export async function clearAll(): Promise<void> {
   if (memoryFallback) {
     memoryFallback = [];

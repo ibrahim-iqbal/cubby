@@ -1,5 +1,5 @@
 import type { CubbyItem, Hit } from '../types';
-import { tokenize, lexicalScore } from './lexical';
+import { tokenize, lexicalScore, recentHits } from './lexical';
 import { cosine } from './embeddings';
 
 // Real hybrid ranking (SPEC §8, ARCHITECTURE §4.2): semantic cosine +
@@ -12,12 +12,7 @@ const MAX_RESULTS = 8;
 
 export function search(query: string, queryVector: Float32Array | null, items: CubbyItem[]): Hit[] {
   const q = tokenize(query);
-  if (q.length === 0) {
-    return [...items]
-      .sort((a, b) => b.createdAt - a.createdAt)
-      .slice(0, MAX_RESULTS)
-      .map((item) => ({ item, score: 1, semantic: 1, lexical: 1 }));
-  }
+  if (q.length === 0) return recentHits(items, MAX_RESULTS);
   return items
     .map((item) => {
       const lexical = lexicalScore(q, item.text);

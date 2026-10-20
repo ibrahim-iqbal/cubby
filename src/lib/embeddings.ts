@@ -16,22 +16,21 @@ type StatusListener = (status: ModelStatus, progress: number) => void;
 let status: ModelStatus = 'idle';
 let progress = 0;
 let pipelinePromise: Promise<FeatureExtractionPipeline> | null = null;
-const listeners = new Set<StatusListener>();
+// ponytail: single subscriber (App.tsx mount) — one callback slot, not a Set.
+let listener: StatusListener | null = null;
 
 function setStatus(s: ModelStatus, p = progress) {
   status = s;
   progress = p;
-  listeners.forEach((fn) => fn(status, progress));
+  listener?.(status, progress);
 }
 
 export function onModelStatus(fn: StatusListener): () => void {
-  listeners.add(fn);
+  listener = fn;
   fn(status, progress);
-  return () => listeners.delete(fn);
-}
-
-export function getModelStatus() {
-  return { status, progress };
+  return () => {
+    if (listener === fn) listener = null;
+  };
 }
 
 /** Kicks off (or returns) the model load. Never throws — resolves null on failure. */
