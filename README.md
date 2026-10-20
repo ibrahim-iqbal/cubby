@@ -37,12 +37,31 @@ Let the model find it.
 
 ## Status
 
-Planning. See `docs/` for the full build:
+Code complete through D4 (code freeze — see `docs/PLAN.md`'s decisions
+log). See `docs/` for the full build:
 - `docs/PLAN.md` — scope, non-goals, day-by-day plan, decisions log
 - `docs/SPEC.md` — features, user flows, data shapes, acceptance criteria
 - `docs/ARCHITECTURE.md` — model, embeddings, storage, search pipeline
 - `docs/UI.md` — the minimal + terminal aesthetic, 5 themes × light/dark
 - `docs/RISKS.md` — risk register with mitigations and kill-switches
+- `test/queries.md` — the D4 recall measurement and honesty table
+
+## Run it
+
+```bash
+npm ci
+npm run dev       # dev server
+npm run build     # production build + service worker
+npm run preview   # serve the production build locally
+```
+
+## Deploy
+
+`render.yaml` is a Render static-site blueprint (build `npm ci && npm run
+build`, publish `dist`, SPA-rewrite every route to `index.html` so
+`/share` and client-side navigation work). On Render: **New → Blueprint**,
+point it at this repo. No environment variables or secrets needed — the
+model downloads client-side from the Hugging Face hub at runtime.
 
 ## Stack
 
