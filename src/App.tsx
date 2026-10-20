@@ -13,7 +13,7 @@ const THEMES: ThemeName[] = ['terminal', 'paper', 'mono', 'cobalt', 'ember'];
 const QUERY_DEBOUNCE_MS = 120;
 
 const EXAMPLES = [
-  'wifi password: Sunflower92!',
+  'wifi password: Sunflower92',
   'https://example.com/the-article-i-was-reading',
   'docker run --rm -it -v $(pwd):/app node:22 npm install',
   '123 Baker Street, London NW1 6XE',
@@ -51,6 +51,7 @@ function App() {
   const [modelProgress, setModelProgress] = useState(0);
   const [queryVector, setQueryVector] = useState<Float32Array | null>(null);
   const [undoItem, setUndoItem] = useState<CubbyItem | null>(null);
+  const [pendingImport, setPendingImport] = useState<{ text: string } | null>(null);
   const [showIntro, setShowIntro] = useState(() => {
     try {
       return localStorage.getItem('cubby.seenIntro.v1') !== '1';
@@ -190,9 +191,14 @@ function App() {
 
   async function handleImportFile(file: File) {
     const text = await file.text();
-    const mode = confirm('Merge with your current cubby? Cancel to replace it entirely.') ? 'merge' : 'replace';
-    await importJSON(text, mode);
+    setPendingImport({ text });
+  }
+
+  async function resolveImport(mode: 'merge' | 'replace') {
+    if (!pendingImport) return;
+    await importJSON(pendingImport.text, mode);
     setItems(await getAllItems());
+    setPendingImport(null);
   }
 
   async function handleClearAll() {
@@ -263,7 +269,7 @@ function App() {
       : modelStatus === 'loading'
         ? `loading model… ${Math.round(modelProgress * 100)}%`
         : modelStatus === 'unavailable'
-          ? 'keyword search (fallback)'
+          ? 'keyword search (no model)'
           : 'on-device';
 
   return (
@@ -287,8 +293,8 @@ function App() {
         <div className="intro">
           <p>
             <strong>dump</strong> anything — no tags, no title, just paste and press ↩.{' '}
-            <strong>ask</strong> for it back in your own words later; it matches by meaning, so you
-            don't need the exact words you saved it with.
+            <strong>ask</strong> for it back later, in your own words — it matches by meaning, not
+            exact text.
           </p>
           <button onClick={dismissIntro}>got it</button>
         </div>
@@ -345,6 +351,18 @@ function App() {
                 clear all
               </button>
             </div>
+            {pendingImport && (
+              <div className="import-choice">
+                <span>merge with your cubby, or replace it entirely?</span>
+                <div className="settings-row">
+                  <button onClick={() => resolveImport('merge')}>merge</button>
+                  <button className="danger" onClick={() => resolveImport('replace')}>
+                    replace
+                  </button>
+                  <button onClick={() => setPendingImport(null)}>cancel</button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
