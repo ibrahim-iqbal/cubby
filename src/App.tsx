@@ -60,6 +60,42 @@ function Collapse({ open, children }: { open: boolean; children: React.ReactNode
   );
 }
 
+// Spotlight glyph layer: a fixed grid of monochrome terminal chars behind
+// the shell, hidden by a mask that only reveals ~120px around the cursor.
+// All visual work is CSS (mask-image: radial-gradient); JS only writes two
+// CSS vars from mousemove, rAF-throttled so it fires once per frame.
+function CursorGlyphs() {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (!window.matchMedia('(hover: hover)').matches) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      el.classList.add('reduced');
+      return;
+    }
+    let frame = 0;
+    let x = -9999;
+    let y = -9999;
+    const onMove = (e: PointerEvent) => {
+      x = e.clientX;
+      y = e.clientY;
+      if (frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        el.style.setProperty('--mx', `${x}px`);
+        el.style.setProperty('--my', `${y}px`);
+      });
+    };
+    window.addEventListener('pointermove', onMove, { passive: true });
+    return () => {
+      window.removeEventListener('pointermove', onMove);
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, []);
+  return <div ref={ref} className="cursor-glyphs" aria-hidden="true" />;
+}
+
 function App() {
   const [settings, setSettings] = useState<Settings>(() => loadSettings());
   const [items, setItems] = useState<CubbyItem[]>([]);
@@ -304,8 +340,10 @@ function App() {
           : 'on-device';
 
   return (
-    <div className="shell">
-      <header className="topbar">
+    <>
+      <CursorGlyphs />
+      <div className="shell">
+        <header className="topbar">
         <span className="brand">
           <span className="brand-mark" aria-hidden="true">
             ❯
@@ -565,7 +603,8 @@ function App() {
       <footer className="footer" aria-live="polite">
         {footerLabel} · {items.length} items
       </footer>
-    </div>
+      </div>
+    </>
   );
 }
 

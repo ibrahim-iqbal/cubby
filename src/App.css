@@ -2,6 +2,40 @@
   max-width: 620px;
   margin: 0 auto;
   padding: 48px 20px;
+  position: relative;
+  z-index: 1;
+  background: var(--bg);
+  min-height: 100svh;
+}
+
+/* Cursor spotlight: fixed grid of monochrome '+' glyphs behind the shell,
+   masked to a ~140px radius around the cursor. Hidden by default (mask
+   starts at -9999px), reveals as the pointer moves. All CSS — JS only
+   writes --mx / --my from mousemove. Fits the terminal aesthetic because
+   the pattern is actual chars rendered via SVG, not particle fluff. */
+.cursor-glyphs {
+  --mx: -9999px;
+  --my: -9999px;
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  color: var(--dim);
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><text x='16' y='22' font-family='Menlo,Consolas,monospace' font-size='14' fill='currentColor' text-anchor='middle' opacity='0.55'>+</text></svg>");
+  background-repeat: repeat;
+  background-size: 32px 32px;
+  opacity: 0.45;
+  -webkit-mask-image: radial-gradient(circle 140px at var(--mx) var(--my), black 0%, transparent 100%);
+  mask-image: radial-gradient(circle 140px at var(--mx) var(--my), black 0%, transparent 100%);
+  transition: opacity 300ms ease;
+}
+
+/* Reduced-motion: no cursor-following reveal — static full-visibility at
+   lower opacity so the texture is present but not animated. */
+.cursor-glyphs.reduced {
+  -webkit-mask-image: none;
+  mask-image: none;
+  opacity: 0.15;
 }
 
 /* Two-way collapse (settings, banners, import choice, intro) — grid-rows
