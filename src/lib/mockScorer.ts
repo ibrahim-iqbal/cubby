@@ -1,21 +1,9 @@
 import type { CubbyItem, Hit } from '../types';
+import { tokenize, lexicalScore } from './lexical';
 
-// D1 mock scorer — keyword/token overlap stand-in for the real embedding
-// pipeline (ARCHITECTURE §4.2 lands D2). Documented in SPEC/ARCHITECTURE
-// as the permanent manual-mode floor, not a throwaway: if the model never
-// loads, this is what search falls back to. Real version adds a semantic
-// cosine term; here semantic === lexical since there's no model yet.
-
-function tokenize(s: string): string[] {
-  return s.toLowerCase().match(/[a-z0-9]+/g) ?? [];
-}
-
-function lexicalScore(queryTokens: string[], text: string): number {
-  if (queryTokens.length === 0) return 0;
-  const itemTokens = new Set(tokenize(text));
-  const hits = queryTokens.filter((t) => itemTokens.has(t)).length;
-  return hits / queryTokens.length;
-}
+// Manual-mode floor (RISKS R3 kill-switch / ARCHITECTURE §6.2): pure
+// keyword overlap, no model involved. Used when the embedding model is
+// unavailable, and as the D1 placeholder before D2 wired real embeddings.
 
 const MIN_SCORE = 0.001;
 const MAX_RESULTS = 8;
@@ -23,7 +11,6 @@ const MAX_RESULTS = 8;
 export function search(query: string, items: CubbyItem[]): Hit[] {
   const q = tokenize(query);
   if (q.length === 0) {
-    // empty query → most recent (SPEC §1.1)
     return [...items]
       .sort((a, b) => b.createdAt - a.createdAt)
       .slice(0, MAX_RESULTS)

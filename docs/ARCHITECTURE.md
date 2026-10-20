@@ -24,9 +24,10 @@ the model, the vectors, the search, the storage.
 - **UI:** React 19 + Vite, TypeScript. Static build, no SSR.
 - **Model runtime:** `@huggingface/transformers` (transformers.js v3+),
   `feature-extraction` pipeline, WebGPU device with WASM fallback.
-- **Model:** EmbeddingGemma (300M). Target ONNX build on the HF hub
-  (e.g. `onnx-community/embeddinggemma-300m` — **VERIFY D1**, see RISKS
-  R1). Quantized weights (q8, fall back to q4 if size/speed demands).
+- **Model:** EmbeddingGemma (300M), pinned to
+  `onnx-community/embeddinggemma-300m-ONNX` (**verified D2 live in the
+  browser**, see RISKS R1 — the `-ONNX` suffix matters, the bare name
+  doesn't exist). `dtype: 'q8'`.
 - **Storage:** IndexedDB (`idb` thin wrapper or hand-rolled) for items +
   vectors; localStorage for settings.
 - **Search:** cosine similarity in plain JS/TypedArrays.
@@ -47,15 +48,15 @@ the model, the vectors, the search, the storage.
   does the thing it's good at.
 - **Dimensions / Matryoshka:** EmbeddingGemma supports Matryoshka
   representation — the full 768-dim vector can be truncated to 512 / 256 /
-  128 with graceful quality loss. v1 stores a truncated dim (likely 256)
-  to cut IndexedDB size and speed cosine math; the exact dim is chosen D2
-  by measuring recall on the test set vs storage/speed. `dim` is stored
-  per item so a later re-embed can change it cleanly.
-- **Prompt/instruction format:** EmbeddingGemma uses task-prefixed inputs
-  (a query prefix vs a document prefix). Items are embedded with the
-  *document* prefix at dump time; the search box is embedded with the
-  *query* prefix. Using the right prefixes materially affects recall —
-  pin the exact strings from the model card D2 and record them here.
+  128 with graceful quality loss. v1 stores **256-dim** (truncate +
+  renormalize), the D2 starting point; the exact dim can still be
+  re-measured against the D4 test set vs storage/speed.
+- **Prompt/instruction format:** pinned from the model card —
+  document prefix `title: none | text: `, query prefix
+  `task: search result | query: `. Items are embedded with the document
+  prefix at dump time; the search box with the query prefix. Confirmed
+  live D2: a paraphrase query sharing zero words with a dumped item still
+  ranked it top.
 - **Normalization:** store L2-normalized vectors so cosine reduces to a
   dot product.
 

@@ -2,12 +2,15 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { CubbyItem, Settings, ThemeName } from './types';
 import { applyTheme, loadSettings, saveSettings } from './lib/settings';
 import { getAllItems, newItem, saveItem } from './lib/storage';
-import { search } from './lib/mockScorer';
+import { embedDocument, embedQuery, loadModel, onModelStatus, type ModelStatus } from './lib/embeddings';
+import { search as hybridSearch } from './lib/hybridScorer';
+import { search as manualSearch } from './lib/mockScorer';
 import './App.css';
 
 type Mode = 'ask' | 'dump';
 
 const THEMES: ThemeName[] = ['terminal', 'paper', 'mono', 'cobalt', 'ember'];
+const QUERY_DEBOUNCE_MS = 120;
 
 function timeAgo(ms: number): string {
   const s = Math.floor((Date.now() - ms) / 1000);
@@ -28,6 +31,9 @@ function App() {
   const [selected, setSelected] = useState(0);
   const [copied, setCopied] = useState<string | null>(null);
   const [showThemes, setShowThemes] = useState(false);
+  const [modelStatus, setModelStatus] = useState<ModelStatus>('idle');
+  const [modelProgress, setModelProgress] = useState(0);
+  const [queryVector, setQueryVector] = useState<Float32Array | null>(null);
   const barRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -39,7 +45,33 @@ function App() {
     getAllItems().then(setItems);
   }, []);
 
-  const hits = useMemo(() => search(query, items), [query, items]);
+  // Kick off the model load once on mount (SPEC §5: shell + manual search
+  // usable immediately, semantic unlocks when ready).
+  useEffect(() => {
+    const unsub = onModelStatus((s, p) => {
+      setModelStatus(s);
+      setModelProgress(p);
+    });
+    loadModel();
+    return unsub;
+  }, []);
+
+  // Debounced query embedding (ARCHITECTURE §4.2).
+  useEffect(() => {
+    if (modelStatus !== 'ready' || !query.trim()) {
+      setQueryVector(null);
+      return;
+    }
+    const t = setTimeout(() => {
+      embedQuery(query).then(setQueryVector);
+    }, QUERY_DEBOUNCE_MS);
+    return () => clearTimeout(t);
+  }, [query, modelStatus]);
+
+  const hits = useMemo(
+    () => (modelStatus === 'unavailable' ? manualSearch(query, items) : hybridSearch(query, queryVector, items)),
+    [query, queryVector, items, modelStatus],
+  );
 
   useEffect(() => setSelected(0), [query, mode]);
 
@@ -50,6 +82,13 @@ function App() {
     await saveItem(item);
     setItems((prev) => [item, ...prev]);
     setDumpText('');
+    // Embed off the critical path — save never blocks on the model (SPEC §1.2).
+    embedDocument(text).then((vector) => {
+      if (!vector) return;
+      const withVector = { ...item, vector };
+      saveItem(withVector);
+      setItems((prev) => prev.map((i) => (i.id === item.id ? withVector : i)));
+    });
   }
 
   async function handleCopy(item: CubbyItem) {
@@ -99,6 +138,15 @@ function App() {
     return () => window.removeEventListener('keydown', onGlobalKey);
   }, []);
 
+  const footerLabel =
+    modelStatus === 'ready'
+      ? 'EmbeddingGemma · on-device'
+      : modelStatus === 'loading'
+        ? `loading model… ${Math.round(modelProgress * 100)}%`
+        : modelStatus === 'unavailable'
+          ? 'keyword search (fallback)'
+          : 'on-device';
+
   return (
     <div className="shell">
       <header className="topbar">
@@ -132,6 +180,10 @@ function App() {
             ))}
           </div>
         </div>
+      )}
+
+      {modelStatus === 'unavailable' && (
+        <div className="banner">on-device search unavailable here; searching by keyword. your data still never leaves the device.</div>
       )}
 
       <div className="bar">
@@ -201,7 +253,7 @@ function App() {
       )}
 
       <footer className="footer">
-        keyword search (mock) · on-device · {items.length} items
+        {footerLabel} · {items.length} items
       </footer>
     </div>
   );

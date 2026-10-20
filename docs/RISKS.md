@@ -23,6 +23,25 @@ Mitigation ladder:
 Verify: **D1 (load) + D2 (recall).** Kill-switch: swap to the fallback
 embedding model; the app is identical, only the category claim changes.
 
+**VERIFIED D2.** Real repo id: `onnx-community/embeddinggemma-300m-ONNX`
+(not the guessed `embeddinggemma-300m`), `feature-extraction` pipeline,
+`dtype: 'q8'`. Prefixes pinned from the model card: query =
+`task: search result | query: `, document = `title: none | text: `.
+Loaded and embedded live in the actual target runtime (the Vite dev
+server in the browser pane) — model downloaded (~100MB q8 class),
+reached `ready`, and a paraphrase query sharing zero words with a dumped
+item ("set up dependencies in a container" → a saved `docker run ...npm
+install` command) ranked it top with no lexical overlap, confirming real
+semantic recall, not just a successful load.
+
+**False-alarm note:** an initial Node.js verification script failed with
+"Unable to get model file path or buffer" while fetching the >300MB
+external `.onnx_data` file — looked like R1 materializing, but it never
+reproduced in the browser. Treated as a Node-specific loader path issue,
+not a model-availability problem, since the actual target runtime (the
+browser tab) is what was re-verified and works. Lesson: verify R1-class
+risks in the real target environment first, not a Node proxy for it.
+
 ## R2 — Model download size vs the "lazy / no-install" pitch
 A 300M embedding model is a real download (hundreds of MB class). Nobody
 lazy waits for a huge download.

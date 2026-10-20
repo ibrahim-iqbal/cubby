@@ -7,7 +7,7 @@ export type CubbyItem = {
   text: string;
   type: ItemType;
   createdAt: number;
-  // vector/dim land in D2 once real embeddings exist.
+  vector?: Float32Array; // absent until the D2 embed-on-save backfill lands
 };
 
 export type ThemeName = 'terminal' | 'paper' | 'mono' | 'cobalt' | 'ember';
