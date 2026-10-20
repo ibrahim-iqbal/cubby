@@ -1,4 +1,4 @@
-# pile — UI
+# cubby — UI
 
 The aesthetic: **minimal, command-palette-first, with a terminal/mono
 soul.** It must be calm enough to open 20× a day and distinctive through
@@ -23,9 +23,9 @@ machine, nothing uploaded" on sight.
 ## Layout (single screen)
 
 ```
-  pile.                         ● local · offline · nothing uploaded
+  cubby.                         ● local · offline · nothing uploaded
   ┌───────────────────────────────────────────────────────────┐
-  ❯ ask your pile…                                   ↑↓  ↩ copy │
+  ❯ ask your cubby…                                   ↑↓  ↩ copy │
   └───────────────────────────────────────────────────────────┘
    [ ask ]  dump
 
@@ -78,7 +78,7 @@ machine, nothing uploaded" on sight.
   `:root[data-mode="light"|"dark"]`. Each theme defines both modes.
 - Default mode = system (`prefers-color-scheme`), overridable to
   light/dark. Default theme = `terminal`.
-- Both persist in `localStorage` (`pile.settings.v1`), read by a tiny
+- Both persist in `localStorage` (`cubby.settings.v1`), read by a tiny
   inline `<head>` script before first paint to set `data-theme` /
   `data-mode` — no flash of the wrong theme.
 - A theme picker in settings shows a live swatch per theme.
@@ -174,9 +174,9 @@ the cozy end of the range.
 
 ## Empty & edge states (write real copy, not apologies)
 
-- **No pile yet** (Ask, empty pile): "nothing saved yet — switch to dump
+- **No cubby yet** (Ask, empty cubby): "nothing saved yet — switch to dump
   and paste anything."
-- **No match** (Ask, query, nothing close): "nothing close in your pile —
+- **No match** (Ask, query, nothing close): "nothing close in your cubby —
   try other words. it matches meaning, not exact text."
 - **Dump mode idle:** "paste a link, note, address, snippet — anything.
   press ↩ and forget it. no tags, no folders."

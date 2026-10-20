@@ -1,14 +1,14 @@
-# pile — PLAN
+# cubby — PLAN
 
-Working name: **pile** (verify GitHub/npm/product collision before the
-repo goes public; candidates if taken: `pileup`, `stash`, `latch`,
-`pocketlint`). Repo is **private** until the submission window; made
-public later only on explicit instruction.
+Name: **cubby**. Checked for prominent GitHub collisions before locking
+(CubbyFlow ★305 was the closest hit — low enough to proceed). Repo is
+**private** until the submission window; made public later only on
+explicit instruction.
 
 ## The one-liner
 
-Dump anything with zero effort; ask for it later in plain words; the
-model does the remembering; nothing leaves the device.
+Toss anything into your cubby with zero effort; ask for it later in
+plain words; the model does the remembering; nothing leaves the device.
 
 ## Goals (what "done" means)
 
@@ -16,19 +16,24 @@ model does the remembering; nothing leaves the device.
    embedding model in-browser and works fully offline after first load.
 2. **Dump:** paste any text/link/snippet, one keypress saves it, no tags
    or folders required. Embedded on save, stored locally.
-3. **Ask:** a command bar that semantically ranks the pile against a
-   plain-language query, highlights the hit, copies/opens on Enter.
-4. **Keyboard-first:** the whole loop (focus, type, arrow, copy) works
+3. **Share-to-cubby:** on mobile, the OS Share sheet can send text/links
+   straight into cubby without opening the app — the lowest-friction
+   capture path there is (PWA Web Share Target).
+4. **Ask:** a command bar that ranks the cubby by a hybrid of semantic
+   (embedding cosine) and lexical score against a plain-language query,
+   so an exact word match never loses to a weak semantic guess.
+   Highlights the hit, copies/opens on Enter.
+5. **Keyboard-first:** the whole loop (focus, type, arrow, copy) works
    without the mouse.
-5. **Themes:** light + dark, and a picker across 5 named themes, both
+6. **Themes:** light + dark, and a picker across 5 named themes, both
    persisted.
-6. An honest measurement of retrieval quality on a fixed test set, with
+7. An honest measurement of retrieval quality on a fixed test set, with
    the failures written up (the HushQuote-style honesty table).
-7. A DEV post that shows the lazy payoff with a real number.
+8. A DEV post that shows the lazy payoff with a real number.
 
 ## Non-goals (explicitly out, say so in the post)
 
-- **No generation.** `pile` does not write summaries or answers. It
+- **No generation.** `cubby` does not write summaries or answers. It
   retrieves. (Optional: one-line highlight of the matched span — pure
   string work, not model generation. Kept minimal.)
 - **No background daemon / OS clipboard watching** in v1. You paste into
@@ -52,12 +57,18 @@ model does the remembering; nothing leaves the device.
   Embed-on-save, cosine search, first-run model download with progress.
   Verify the model id + ONNX availability first (RISKS R1). Replace the
   mock scorer; keep it as the offline/unsupported-device fallback.
-- **D3 — persistence + offline.** IndexedDB for items + vectors.
+- **D3 — persistence + offline + capture.** IndexedDB for items + vectors.
   Service worker to precache shell + model (offline PWA). Export/import
-  JSON. Delete item. Settings persistence.
+  JSON. Delete item. Settings persistence. **Share-to-cubby**: manifest
+  `share_target` + a `/share` route that writes straight to the store
+  without opening the full UI — verify on a real Android device (iOS
+  Safari's Web Share Target support is weaker; document the gap honestly
+  rather than claim it works everywhere).
 - **D4 — measure + polish.** Build the fixed query/expected-hit test set
   (the "20 transcripts" equivalent), run it, record recall and the
-  misses honestly. Polish motion, keyboard, empty states, a11y. Code
+  misses honestly — including a before/after on **hybrid ranking**
+  (semantic-only vs semantic+lexical) so the lift is a real measured
+  number, not a claim. Polish motion, keyboard, empty states, a11y. Code
   freeze D4 night.
 - **D5 — writing only.** The DEV post. The heaviest judging criterion
   (Writing Quality) gets protected, uninterrupted time.
@@ -84,7 +95,7 @@ model does the remembering; nothing leaves the device.
 
 ## Decisions log
 
-- 2026-10-20: Idea chosen (pile / dump-and-ask local memory) over the
+- 2026-10-20: Idea chosen (cubby / dump-and-ask local memory) over the
   subscription-finder (one-and-done, low retention) and the kinetic
   receipt (wrong for a daily-use tool). Daily-use recall is the reason to
   return; semantic retrieval plays to the small model's strength, the
@@ -98,3 +109,8 @@ model does the remembering; nothing leaves the device.
 - Commit style: clean conventional commits, GPG-signed, `-s` sign-off
   where a repo needs it. **No AI-attribution trailers** (per the
   ibrahim-iqbal identity rule).
+- 2026-10-20: Name locked to **cubby** after a collision check (closest hit:
+  CubbyFlow ★305, low enough to proceed). Scope enhanced with **A**
+  (Share-to-cubby, PWA Web Share Target) and **B** (hybrid semantic+lexical
+  ranking) — both promoted from "later lever" / RISKS mitigation to core
+  goals, folded into D3/D4.

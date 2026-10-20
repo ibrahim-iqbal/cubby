@@ -1,4 +1,4 @@
-# pile — ARCHITECTURE
+# cubby — ARCHITECTURE
 
 ## 1. Shape of the thing
 
@@ -32,6 +32,8 @@ the model, the vectors, the search, the storage.
 - **Search:** cosine similarity in plain JS/TypedArrays.
 - **Offline:** a service worker precaches the app shell and the model
   shards; `vite-plugin-pwa` or a hand-written SW.
+- **Capture:** `manifest.webmanifest` `share_target` + a `/share` route
+  for the OS Share sheet (Android-solid, iOS-weak — see §4.3).
 - **Deploy:** Render static site, build `npm ci && npm run build`,
   publish `dist`, auto-deploy on push to `main`.
 
@@ -62,21 +64,39 @@ the model, the vectors, the search, the storage.
 ### 4.1 Dump → store
 1. User submits text. Detect coarse `type` by regex (url / shell-ish /
    address-ish / else note) for the glyph only.
-2. Create the `PileItem`, write it to IndexedDB immediately (never block
+2. Create the `CubbyItem`, write it to IndexedDB immediately (never block
    on the model).
 3. Queue an embed: `embed(DOCUMENT_PREFIX + text)` → L2-normalize →
    truncate to `dim` → write `vector` back onto the item.
 4. The item is searchable the moment its vector lands; until then it's
    stored and excluded from semantic ranking (still visible in recent).
 
-### 4.2 Ask → rank
+### 4.2 Ask → rank (hybrid)
 1. Debounce the query (~120ms).
 2. `embed(QUERY_PREFIX + query)` → normalize → truncate to `dim`.
-3. Cosine (dot product) against every item vector in memory.
-4. Sort desc, apply the min-score floor, cap at 8.
-5. Render with lexical highlight (separate from the semantic rank).
+3. Per item: `semantic` = cosine (dot product) vs the item vector;
+   `lexical` = normalized overlap of query tokens found in item text
+   (plain string split + set intersection, no model call).
+4. `score = 0.7 * semantic + 0.3 * lexical` (weights tuned against the D4
+   test set, not guessed; record the chosen weights here once set).
+5. Sort by `score` desc, apply the min-score floor, cap at 8.
+6. Render with the same lexical overlap driving the highlight — rank and
+   highlight now share one lexical signal instead of disagreeing.
 
-### 4.3 First load
+### 4.3 Share-to-cubby → store
+1. OS Share sheet → `/share?title=&text=&url=` (GET, per the Web Share
+   Target spec declared in `manifest.webmanifest`).
+2. The `/share` route concatenates the shared fields into `text`, runs
+   the same regex type-detection and IndexedDB write as a manual dump
+   (step 4.1.2), then redirects to `/` with the new item visible in
+   recent — no extra screen, no manual paste.
+3. Embedding queues exactly as in 4.1.3; the share path never blocks on
+   the model.
+4. Platforms without Web Share Target support never register the share
+   target — the OS simply won't offer cubby in the Share sheet; no
+   broken state, just absence (document this, don't hide it).
+
+### 4.4 First load
 1. Shell renders instantly; manual (keyword) search works at once.
 2. Model shards download with progress UI (cover state).
 3. On ready, warm the pipeline with one throwaway embed, then flip
@@ -87,7 +107,7 @@ the model, the vectors, the search, the storage.
 - **IndexedDB `items`**: keyed by `id`. Vectors stored as `ArrayBuffer`
   (Float32). On app start, load all items into memory once (a few
   thousand small vectors is trivial), search in RAM, persist writes.
-- **localStorage `pile.settings.v1`**: `{theme, mode}`. Read in a tiny
+- **localStorage `cubby.settings.v1`**: `{theme, mode}`. Read in a tiny
   inline `<head>` script before first paint to set `data-theme` /
   `data-mode` and avoid a flash.
 - **Versioned keys** (`.v1`) so a schema change can migrate, not corrupt.
@@ -103,7 +123,7 @@ the model, the vectors, the search, the storage.
 3. **IndexedDB blocked** (private window, quota) → in-memory session only,
    with a clear "not saved across reloads" notice; never silently lose
    data pretending it saved.
-4. **Huge pile** (tens of thousands) → brute-force cosine starts to cost;
+4. **Huge cubby** (tens of thousands) → brute-force cosine starts to cost;
    LATER lever: an approximate index (HNSW in wasm) or dim reduction.
    v1 documents the ceiling rather than pre-optimizing.
 

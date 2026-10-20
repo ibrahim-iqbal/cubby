@@ -1,4 +1,4 @@
-# pile — RISKS
+# cubby — RISKS
 
 Each risk: a mitigation ladder (cheapest first), the day it's verified,
 and the kill-switch if mitigation fails. No risk rides unexamined to D5.
@@ -48,16 +48,18 @@ dump — the exact case that justifies semantic over keyword.
 Mitigation ladder:
 1. **Right prefixes + normalization** (R1.3) — the cheapest real lever.
 2. **Dim/quant tuning** against the test set (R2.1–2).
-3. **Hybrid rank** — blend semantic cosine with a cheap lexical (BM25-ish
-   / token overlap) score so exact-word matches never rank below a weak
-   semantic guess. Lexical is free and only helps.
+3. **Hybrid rank is now a core feature, not a fallback** (SPEC §8,
+   ARCHITECTURE §4.2): `score = 0.7 * semantic + 0.3 * lexical`, built D3,
+   tuned against the test set D4 — not an escape hatch held in reserve.
 4. **Honest measurement** — the D4 test set (`test/queries.md`, ~20
-   paraphrase-heavy triples) gives Recall@3; every miss is named in the
-   post. This is the HushQuote honesty table, and it's a *writing asset*,
-   not a failure to hide.
-Verify: **D4 sweep.** Kill-switch: lead the product on exact+semantic
-hybrid (still better than plain search) and report the paraphrase ceiling
-honestly; manual mode is the floor.
+   paraphrase-heavy triples) gives Recall@3, run both semantic-only and
+   hybrid so the blend's lift is a measured delta; every miss is named in
+   the post. This is the HushQuote honesty table, and it's a *writing
+   asset*, not a failure to hide.
+Verify: **D4 sweep.** Kill-switch: the hybrid blend already is the
+exact+semantic safety net; if recall is still weak, report the paraphrase
+ceiling honestly — manual mode (pure lexical) is the floor underneath
+even that.
 
 ## R4 — IndexedDB / storage edge cases
 Private windows, cleared storage, quota limits can make "saved" a lie.
@@ -66,12 +68,12 @@ Mitigation ladder:
 2. **Detect unavailable storage** → run in-memory for the session with a
    clear "not saved across reloads" notice. Never pretend a save
    succeeded (the HushQuote silent-data-loss lesson).
-3. **Export/import JSON** so the user's pile is portable and backup-able
+3. **Export/import JSON** so the user's cubby is portable and backup-able
    regardless of browser state.
 Verify: **D3** (private window + quota test). Kill-switch: in-memory mode
 with the honest banner.
 
-## R5 — Scaling: brute-force cosine on a big pile
+## R5 — Scaling: brute-force cosine on a big cubby
 Cosine over every vector per query is fine to low thousands; tens of
 thousands starts to cost.
 Mitigation ladder:
@@ -108,6 +110,22 @@ Mitigation ladder:
    during a search; the UI's `local · offline` line isn't just copy.
 Verify: **D4** (network-tab audit in the post). Kill-switch: none needed;
 this is a build discipline, not a risk to trade off.
+
+## R8 — Share-to-cubby platform support is uneven
+Web Share Target is solid on Android Chrome but weak/absent on iOS
+Safari; claiming it works everywhere would be the kind of overclaim this
+project is trying to avoid.
+Mitigation ladder:
+1. **Feature-detect, don't assume** — the manifest declares the target;
+   platforms that don't support it simply never show cubby in the Share
+   sheet. No error state needed, just absence.
+2. **Manual Dump is the universal fallback** — every platform can always
+   paste into the box; Share-to-cubby is a bonus lever, not the only path.
+3. **State the real coverage in the post** — demo on Android, say
+   explicitly that iOS falls back to manual dump.
+Verify: **D3** (test on a real Android device; check iOS behavior, even
+if just to confirm the graceful absence). Kill-switch: ship the feature
+as Android-first and say so; Dump mode never depended on it.
 
 ## Standing instruction
 Any session that finds a new risk adds it here with a ladder + verify-day
