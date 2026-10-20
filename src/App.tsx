@@ -364,17 +364,25 @@ function App() {
       </div>
 
       {items.length === 0 ? (
-        <div className="onboarding">
-          <p className="onboarding-lead">your cubby is empty — dump anything, no tags or folders.</p>
-          <p className="onboarding-hint">try one of these, or paste your own:</p>
-          <div className="example-chips">
-            {EXAMPLES.map((ex) => (
-              <button key={ex} className="example-chip" onClick={() => useExample(ex)}>
-                {ex.length > 44 ? ex.slice(0, 44) + '…' : ex}
-              </button>
-            ))}
-          </div>
-        </div>
+        mode === 'ask' ? (
+          <div className="meta-line">nothing saved yet — switch to dump and paste anything.</div>
+        ) : (
+          <>
+            <div className="meta-line">your cubby is empty — try one of these, or paste your own</div>
+            <ul className="results" aria-label="Examples">
+              {EXAMPLES.map((ex) => (
+                <li key={ex} className="row example-row" onClick={() => useExample(ex)}>
+                  <span className="glyph" aria-hidden="true">
+                    eg
+                  </span>
+                  <div className="content">
+                    <div className="text">{ex}</div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </>
+        )
       ) : (
         <>
           <div className="meta-line">

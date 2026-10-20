@@ -177,11 +177,16 @@ the cozy end of the range.
 
 ## Empty & edge states (write real copy, not apologies)
 
-- **No cubby yet** (either mode, empty cubby): a dedicated onboarding
-  block — "your cubby is empty — dump anything, no tags or folders," plus
-  4 example-dump chips (one per type: note, link, cmd, addr) that prefill
-  the dump box on click so a first-time user sees the loop immediately
-  rather than reading about it.
+- **No cubby yet, Ask mode:** a single meta-line, same visual weight as
+  the non-empty one — "nothing saved yet — switch to dump and paste
+  anything." No example content here; showing dump-oriented examples
+  while the user is trying to ask was a real mode mismatch, not a taste
+  call, and broke the screen's internal logic.
+- **No cubby yet, Dump mode:** a meta-line ("your cubby is empty — try
+  one of these, or paste your own") followed by 4 example items rendered
+  as real result rows — same left-aligned list styling as everything
+  else, not a centered pill cluster — that prefill the dump box on
+  click. One per type (note, link, cmd, addr).
 - **No match** (Ask, query, nothing close): "nothing close in your cubby —
   try other words. it matches meaning, not exact text."
 - **Dump mode idle, non-empty cubby:** the dump box placeholder still
