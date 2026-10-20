@@ -2,6 +2,9 @@
 
 *A Hacktoberfest Open-Source AI Challenge Week 3 — "Slow and Steady" — submission.*
 
+![cubby — the UI at a glance](./design/post/01-hero.png)
+<!-- ASSET 2 (hero screenshot) — see docs/DEV_POST_ASSETS.md -->
+
 ## The number first
 
 I built a 20-item honesty table before I touched a single line of UI
@@ -33,6 +36,9 @@ So `cubby` does exactly two things:
 
 That's the entire product.
 
+![dump → ask → copy, in under 5 seconds](./design/post/02-loop.gif)
+<!-- ASSET 3 (demo gif) — see docs/DEV_POST_ASSETS.md -->
+
 ## Why embeddings, not generation
 
 I shipped a Hacktoberfest project the week before this one
@@ -50,6 +56,27 @@ ranking blend does the rest.
 That inversion is the real idea here, more than the UI or the feature
 list: play to the model's strength instead of its weakness, and the
 small-model risk mostly disappears.
+
+Here's the whole system — everything inside the dashed box is on your
+device, forever:
+
+```mermaid
+%%{init: {'theme':'base','themeVariables':{'primaryColor':'#141619','primaryTextColor':'#e8e9ea','primaryBorderColor':'#2d3136','lineColor':'#7ee0b8','secondaryColor':'#223029','fontFamily':'monospace'}}}%%
+flowchart LR
+    subgraph browser["your browser tab — nothing leaves here"]
+        ui[React UI<br/>dump / ask]
+        model[EmbeddingGemma 300M<br/>in-browser via transformers.js]
+        store[(IndexedDB<br/>items + vectors)]
+        sw[Service Worker<br/>offline cache]
+        ui <--> model
+        ui <--> store
+        sw -.caches.-> ui
+        sw -.caches.-> model
+    end
+    hf[Hugging Face hub<br/>one-time model download]
+    hf -.first load only.-> model
+    user((you)) --> ui
+```
 
 ## The honesty table, in full
 
@@ -103,6 +130,45 @@ genuine paraphrase with no shared vocabulary:
   overlap term — so an exact keyword match is never outranked by a weak
   semantic guess. Lexical is the floor; semantic is the reach.
 
+**Dump → store** (saving an item). The UI never waits on the model —
+the item persists first, the vector backfills:
+
+```mermaid
+%%{init: {'theme':'base','themeVariables':{'primaryColor':'#141619','primaryTextColor':'#e8e9ea','primaryBorderColor':'#2d3136','lineColor':'#7ee0b8','fontFamily':'monospace'}}}%%
+sequenceDiagram
+    autonumber
+    participant U as you
+    participant UI as React UI
+    participant DB as IndexedDB
+    participant M as EmbeddingGemma
+    U->>UI: paste text, press ↩
+    UI->>DB: save item (no vector yet)
+    DB-->>UI: ✓ persisted
+    UI-->>U: cleared, ready for next
+    Note over UI,M: non-blocking — the UI never waits on the model
+    UI->>M: embed(DOC_PREFIX + text)
+    M-->>UI: Float32Array (256-dim)
+    UI->>DB: update item.vector
+```
+
+**Ask → rank** (searching). The hybrid blend — the thing that keeps a
+keyword query from losing to a weak semantic guess, and vice versa:
+
+```mermaid
+%%{init: {'theme':'base','themeVariables':{'primaryColor':'#141619','primaryTextColor':'#e8e9ea','primaryBorderColor':'#2d3136','lineColor':'#7ee0b8','fontFamily':'monospace'}}}%%
+flowchart TB
+    q[your query]
+    q --> embed[embed with QUERY_PREFIX<br/>→ 256-dim vector]
+    q --> tok[tokenize]
+    embed --> cos{{"cosine vs every<br/>stored item vector"}}
+    tok --> lex{{"token overlap<br/>exact / prefix / substring"}}
+    cos --> sem[semantic score 0–1]
+    lex --> lexs[lexical score 0–1]
+    sem --> blend["final = 0.7·semantic + 0.3·lexical"]
+    lexs --> blend
+    blend --> rank[sorted top 8 results]
+```
+
 ## The UI argues the pitch, not just looks nice
 
 The whole thing is monospace, a `❯` prompt, a blinking caret, a quiet
@@ -114,6 +180,9 @@ against WCAG AA for both body text and the one accent color
 isn't a skin choice; it's doing work — it's telling you "this runs on my
 machine" before you've read a word of copy.
 
+![All 5 themes — terminal, paper, mono, cobalt, ember — in dark mode](./design/post/03-themes.png)
+<!-- ASSET 8 (theme gallery) — see docs/DEV_POST_ASSETS.md -->
+
 ## Share-to-cubby
 
 On Android, the OS Share sheet can hand text or a link straight to
@@ -123,6 +192,9 @@ stating plainly that iOS Safari's Web Share Target support is weak to
 absent — on iOS it falls back to the manual paste box, which was always
 going to work regardless. I'd rather say that outright than imply
 something that isn't true for half the phones people own.
+
+![Android share sheet → cubby → the item lands](./design/post/04-share-sheet.png)
+<!-- ASSET 9 (mobile share) — see docs/DEV_POST_ASSETS.md -->
 
 ## What's honestly still missing
 
