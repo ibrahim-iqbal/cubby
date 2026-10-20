@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { CubbyItem, Settings, ThemeName } from './types';
 import { applyTheme, loadSettings, saveSettings } from './lib/settings';
-import { getAllItems, newItem, saveItem } from './lib/storage';
+import { getAllItems, newItem, saveItem, deleteItem, clearAll, exportJSON, importJSON } from './lib/storage';
 import { embedDocument, embedQuery, loadModel, onModelStatus, type ModelStatus } from './lib/embeddings';
 import { search as hybridSearch } from './lib/hybridScorer';
 import { search as manualSearch } from './lib/mockScorer';
@@ -30,11 +30,14 @@ function App() {
   const [dumpText, setDumpText] = useState('');
   const [selected, setSelected] = useState(0);
   const [copied, setCopied] = useState<string | null>(null);
-  const [showThemes, setShowThemes] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [modelStatus, setModelStatus] = useState<ModelStatus>('idle');
   const [modelProgress, setModelProgress] = useState(0);
   const [queryVector, setQueryVector] = useState<Float32Array | null>(null);
+  const [undoItem, setUndoItem] = useState<CubbyItem | null>(null);
   const barRef = useRef<HTMLInputElement>(null);
+  const importRef = useRef<HTMLInputElement>(null);
+  const undoTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
     applyTheme(settings);
@@ -43,6 +46,28 @@ function App() {
 
   useEffect(() => {
     getAllItems().then(setItems);
+  }, []);
+
+  // Share-to-cubby (SPEC §1.3, ARCHITECTURE §4.3): the OS Share sheet GETs
+  // /share?title=&text=&url= per manifest.webmanifest's share_target. Write
+  // straight to the store, no extra screen, then clean the URL.
+  useEffect(() => {
+    if (window.location.pathname !== '/share') return;
+    const p = new URLSearchParams(window.location.search);
+    const parts = [p.get('title'), p.get('text'), p.get('url')].filter(Boolean);
+    const text = parts.join(' — ').trim();
+    window.history.replaceState(null, '', '/');
+    if (!text) return;
+    const item = newItem(text);
+    saveItem(item).then(() => {
+      setItems((prev) => [item, ...prev]);
+      embedDocument(text).then((vector) => {
+        if (!vector) return;
+        const withVector = { ...item, vector };
+        saveItem(withVector);
+        setItems((prev) => prev.map((i) => (i.id === item.id ? withVector : i)));
+      });
+    });
   }, []);
 
   // Kick off the model load once on mount (SPEC §5: shell + manual search
@@ -89,6 +114,46 @@ function App() {
       saveItem(withVector);
       setItems((prev) => prev.map((i) => (i.id === item.id ? withVector : i)));
     });
+  }
+
+  async function handleDelete(item: CubbyItem) {
+    setItems((prev) => prev.filter((i) => i.id !== item.id));
+    await deleteItem(item.id);
+    setUndoItem(item);
+    clearTimeout(undoTimer.current);
+    undoTimer.current = setTimeout(() => setUndoItem(null), 5000);
+  }
+
+  async function handleUndo() {
+    if (!undoItem) return;
+    await saveItem(undoItem);
+    setItems((prev) => [undoItem, ...prev]);
+    setUndoItem(null);
+    clearTimeout(undoTimer.current);
+  }
+
+  async function handleExport() {
+    const json = await exportJSON();
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `cubby-export-${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async function handleImportFile(file: File) {
+    const text = await file.text();
+    const mode = confirm('Merge with your current cubby? Cancel to replace it entirely.') ? 'merge' : 'replace';
+    await importJSON(text, mode);
+    setItems(await getAllItems());
+  }
+
+  async function handleClearAll() {
+    if (!confirm('Clear your entire cubby? This cannot be undone.')) return;
+    await clearAll();
+    setItems([]);
   }
 
   async function handleCopy(item: CubbyItem) {
@@ -151,13 +216,13 @@ function App() {
     <div className="shell">
       <header className="topbar">
         <span className="wordmark">cubby.</span>
-        <button className="pill-btn" onClick={() => setShowThemes((v) => !v)} aria-label="Theme settings">
+        <button className="pill-btn" onClick={() => setShowSettings((v) => !v)} aria-label="Settings">
           ● local · offline · nothing uploaded
         </button>
       </header>
 
-      {showThemes && (
-        <div className="theme-picker" role="group" aria-label="Theme picker">
+      {showSettings && (
+        <div className="theme-picker" role="group" aria-label="Settings">
           {THEMES.map((t) => (
             <button
               key={t}
@@ -178,6 +243,22 @@ function App() {
                 {m}
               </button>
             ))}
+          </div>
+          <div className="settings-actions">
+            <button onClick={handleExport}>export</button>
+            <button onClick={() => importRef.current?.click()}>import</button>
+            <input
+              ref={importRef}
+              type="file"
+              accept="application/json"
+              style={{ display: 'none' }}
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) handleImportFile(f);
+                e.target.value = '';
+              }}
+            />
+            <button onClick={handleClearAll}>clear all</button>
           </div>
         </div>
       )}
@@ -246,10 +327,27 @@ function App() {
                   </div>
                 </div>
                 <span className="match">{Math.round(hit.score * 100)}%</span>
+                <button
+                  className="delete-btn"
+                  aria-label="Delete"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDelete(hit.item);
+                  }}
+                >
+                  ×
+                </button>
               </li>
             ))}
           </ul>
         </>
+      )}
+
+      {undoItem && (
+        <div className="toast">
+          deleted
+          <button onClick={handleUndo}>undo</button>
+        </div>
       )}
 
       <footer className="footer">

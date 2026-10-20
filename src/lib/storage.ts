@@ -50,7 +50,9 @@ export async function getAllItems(): Promise<CubbyItem[]> {
 
 export async function saveItem(item: CubbyItem): Promise<void> {
   if (memoryFallback) {
-    memoryFallback.unshift(item);
+    const i = memoryFallback.findIndex((x) => x.id === item.id);
+    if (i >= 0) memoryFallback[i] = item;
+    else memoryFallback.unshift(item);
     return;
   }
   try {
@@ -87,4 +89,43 @@ export async function deleteItem(id: string): Promise<void> {
 /** True once a save has fallen back to memory-only (not persisted across reloads). */
 export function isMemoryOnly(): boolean {
   return memoryFallback !== null;
+}
+
+export async function clearAll(): Promise<void> {
+  if (memoryFallback) {
+    memoryFallback = [];
+    return;
+  }
+  try {
+    const db = await openDB();
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction(STORE, 'readwrite');
+      tx.objectStore(STORE).clear();
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  } catch {
+    // nothing to clear if storage never worked
+  }
+}
+
+// Export JSON (SPEC §4): vectors omitted by default — portable, small,
+// re-embeddable on import.
+type ExportedItem = Omit<CubbyItem, 'vector'>;
+
+export async function exportJSON(): Promise<string> {
+  const items = await getAllItems();
+  const exported: ExportedItem[] = items.map(({ vector: _vector, ...rest }) => rest);
+  return JSON.stringify({ version: 1, exportedAt: Date.now(), items: exported }, null, 2);
+}
+
+/** Returns the number of items imported. Vectors backfill later via the normal embed queue. */
+export async function importJSON(json: string, mode: 'merge' | 'replace'): Promise<number> {
+  const parsed = JSON.parse(json) as { items: ExportedItem[] };
+  if (!Array.isArray(parsed.items)) throw new Error('not a cubby export file');
+  if (mode === 'replace') await clearAll();
+  for (const item of parsed.items) {
+    await saveItem(item as CubbyItem);
+  }
+  return parsed.items.length;
 }
