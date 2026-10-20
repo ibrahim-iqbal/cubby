@@ -1,0 +1,88 @@
+/* cubby — theme tokens. See docs/UI.md for the design spec these mirror. */
+
+:root {
+  --sans: -apple-system, 'Segoe UI', Inter, sans-serif;
+  --mono: 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace;
+  color-scheme: light dark;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ---- terminal (default) ---- */
+:root[data-theme='terminal'][data-mode='dark'] {
+  --bg: #0e0f11; --panel: #141619; --line: #232629; --line2: #2d3136;
+  --fg: #e8e9ea; --dim: #8a8f96; --dimmer: #5c6269;
+  --accent: #7ee0b8; --accent-dim: #223029;
+}
+:root[data-theme='terminal'][data-mode='light'] {
+  --bg: #f6f7f5; --panel: #ffffff; --line: #e6e7e3; --line2: #d9dad5;
+  --fg: #17181a; --dim: #5f656b; --dimmer: #8f949c;
+  --accent: #12916a; --accent-dim: #dcefe6;
+}
+
+/* ---- paper ---- */
+:root[data-theme='paper'][data-mode='dark'] {
+  --bg: #17150f; --panel: #1e1b13; --line: #2c281d; --line2: #38331f;
+  --fg: #ece6d8; --dim: #9b937f; --dimmer: #6b6454;
+  --accent: #e0b06a; --accent-dim: #302612;
+}
+:root[data-theme='paper'][data-mode='light'] {
+  --bg: #f4efe3; --panel: #fbf7ec; --line: #e6ddc9; --line2: #d8cdb3;
+  --fg: #2a2419; --dim: #6e6450; --dimmer: #9a8f77;
+  --accent: #9a6a15; --accent-dim: #efe4cf;
+}
+
+/* ---- mono ---- */
+:root[data-theme='mono'][data-mode='dark'] {
+  --bg: #101012; --panel: #17181a; --line: #262729; --line2: #323335;
+  --fg: #ededed; --dim: #8c8d8f; --dimmer: #5d5e60;
+  --accent: #c9cacc; --accent-dim: #2a2b2d;
+}
+:root[data-theme='mono'][data-mode='light'] {
+  --bg: #f5f5f5; --panel: #ffffff; --line: #e5e5e5; --line2: #d6d6d6;
+  --fg: #161616; --dim: #5f6061; --dimmer: #949496;
+  --accent: #3a3b3d; --accent-dim: #e3e3e4;
+}
+
+/* ---- cobalt ---- */
+:root[data-theme='cobalt'][data-mode='dark'] {
+  --bg: #0d1017; --panel: #141824; --line: #212636; --line2: #2c3244;
+  --fg: #e6e9f0; --dim: #878ea0; --dimmer: #58607a;
+  --accent: #5b9dff; --accent-dim: #182238;
+}
+:root[data-theme='cobalt'][data-mode='light'] {
+  --bg: #f3f5fa; --panel: #ffffff; --line: #e2e6f0; --line2: #d2d8e6;
+  --fg: #151826; --dim: #5c6478; --dimmer: #929ab2;
+  --accent: #2f6fe0; --accent-dim: #dde7fb;
+}
+
+/* ---- ember ---- */
+:root[data-theme='ember'][data-mode='dark'] {
+  --bg: #16100f; --panel: #1f1716; --line: #2e2321; --line2: #3a2c29;
+  --fg: #efe3df; --dim: #a2918c; --dimmer: #6e5d58;
+  --accent: #e88f7a; --accent-dim: #30201c;
+}
+:root[data-theme='ember'][data-mode='light'] {
+  --bg: #f6efec; --panel: #fffaf8; --line: #ecdcd6; --line2: #dfc9c1;
+  --fg: #2a1e1b; --dim: #74605a; --dimmer: #a08a83;
+  --accent: #c25a3f; --accent-dim: #f6e0d8;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  color: var(--fg);
+  background: var(--bg);
+  font: 15px/1.5 var(--sans);
+}
+
+#root {
+  min-height: 100svh;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+}

@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>cubby</title>
+    <script>
+      // read settings before paint — no flash of the wrong theme (UI.md theme architecture)
+      try {
+        var s = JSON.parse(localStorage.getItem('cubby.settings.v1') || '{}');
+        var theme = s.theme || 'terminal';
+        var mode = s.mode || 'system';
+        if (mode === 'system') mode = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        document.documentElement.dataset.theme = theme;
+        document.documentElement.dataset.mode = mode;
+      } catch (e) {
+        document.documentElement.dataset.theme = 'terminal';
+        document.documentElement.dataset.mode = 'dark';
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
