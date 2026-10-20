@@ -83,8 +83,11 @@ machine, nothing uploaded" on sight.
   `data-mode` — no flash of the wrong theme.
 - A theme picker in settings shows a live swatch per theme.
 - **All 5 themes must pass WCAG AA** for `--fg` on `--bg` and `--accent`
-  on `--bg` in both modes — verified D4 with a contrast check; adjust
-  stops that fail rather than shipping a pretty-but-illegible theme.
+  on `--bg` in both modes — adjust stops that fail rather than shipping a
+  pretty-but-illegible theme.
+  **VERIFIED D4** (`test/contrast.mjs`): all 10 combinations pass — fg
+  ranges 13.4:1–16.6:1 (threshold 4.5:1), accent ranges 3.7:1–12.1:1
+  (threshold 3:1, accent is never body text). No stops needed adjusting.
 
 ### Token set (9 per theme × mode)
 

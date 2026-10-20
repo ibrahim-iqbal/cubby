@@ -311,12 +311,18 @@ function App() {
           <div className="meta-line">
             {items.length === 0 ? 'nothing saved yet — switch to dump and paste anything.' : 'recent · paste to add, type to ask'}
           </div>
-          <ul className="results">
+          <ul className="results" role="listbox" aria-label="Search results">
             {hits.length === 0 && query.trim() && (
-              <li className="empty">nothing close in your cubby — try other words. it matches meaning, not exact text.</li>
+              <li className="empty" role="status">nothing close in your cubby — try other words. it matches meaning, not exact text.</li>
             )}
             {hits.map((hit, i) => (
-              <li key={hit.item.id} className={i === selected ? 'row selected' : 'row'} onClick={() => handleCopy(hit.item)}>
+              <li
+                key={hit.item.id}
+                className={i === selected ? 'row selected' : 'row'}
+                role="option"
+                aria-selected={i === selected}
+                onClick={() => handleCopy(hit.item)}
+              >
                 <span className="glyph" aria-hidden="true">
                   {hit.item.type}
                 </span>
@@ -329,7 +335,7 @@ function App() {
                 <span className="match">{Math.round(hit.score * 100)}%</span>
                 <button
                   className="delete-btn"
-                  aria-label="Delete"
+                  aria-label={`Delete "${hit.item.text.slice(0, 40)}"`}
                   onClick={(e) => {
                     e.stopPropagation();
                     handleDelete(hit.item);

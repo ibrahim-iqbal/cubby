@@ -217,6 +217,8 @@
 
 .results .row.selected {
   background: var(--accent-dim);
+  outline: 1px solid var(--accent);
+  outline-offset: -1px;
 }
 
 .results .row .glyph {

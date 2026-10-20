@@ -80,6 +80,25 @@ exact+semantic safety net; if recall is still weak, report the paraphrase
 ceiling honestly — manual mode (pure lexical) is the floor underneath
 even that.
 
+**VERIFIED D4** (full results and the miss table: `test/queries.md`).
+Live, real-model run against all 20 items as a corpus (each query ranked
+against all 20 dumps, not just its own pair):
+
+- semantic-only Recall@3: **20/20 (100%)**
+- hybrid Recall@3: **20/20 (100%)**
+- lexical-only (manual-mode floor): **14/20 (70%)** — 6 genuine
+  paraphrase misses, all with zero shared vocabulary with their query.
+
+Semantic already hit the ceiling on this set, so hybrid shows no lift
+*here* — its value is the keyword-floor guarantee on queries this set
+doesn't probe, not a recall bump on this particular table. Stated
+honestly: 20 hand-written items is a small set, and 100% here is not a
+claim semantic retrieval is flawless at scale — it's a measured
+beats-keyword-search result on paraphrase, which was the actual
+question. R3 was less of a risk than planned for; the honesty table
+still goes in the post as planned, now with a real result instead of a
+hedge.
+
 ## R4 — IndexedDB / storage edge cases
 Private windows, cleared storage, quota limits can make "saved" a lie.
 Mitigation ladder:

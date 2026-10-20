@@ -114,3 +114,11 @@ plain words; the model does the remembering; nothing leaves the device.
   (Share-to-cubby, PWA Web Share Target) and **B** (hybrid semantic+lexical
   ranking) — both promoted from "later lever" / RISKS mitigation to core
   goals, folded into D3/D4.
+- 2026-10-20: **D4 complete, code freeze.** WCAG AA contrast gate: all 5
+  themes × 2 modes pass (`test/contrast.mjs`). Recall@3 (`test/queries.md`,
+  real model, 20-item corpus): semantic-only 100%, hybrid 100%,
+  lexical-only floor 70% (6 named misses) — honest result, small-set
+  caveat stated, not oversold. Kept hybrid weights at 0.7/0.3 (no signal
+  to tune against on a saturated set). Minor a11y pass: listbox/option
+  roles on results, visible focus ring on the selected row. D5 is
+  writing-only from here — no more code changes before the DEV post.

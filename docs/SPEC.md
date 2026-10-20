@@ -144,8 +144,10 @@ type Hit = {
   - **lexical** = normalized token overlap (query words found in item
     text), cheap string work, no model call.
   - **score** = `0.7 * semantic + 0.3 * lexical` (weights are a tuning
-    knob, not a contract — tune once against the D4 test set, record the
-    final weights there rather than guessing in advance).
+    knob, not a contract). **D4:** run against the test set unchanged —
+    semantic already hit 20/20 Recall@3, so there was no signal to tune
+    against; kept the 0.7/0.3 starting point rather than overfitting
+    weights to a saturated 20-item set.
 - Purpose: an exact keyword match never loses to a weak semantic guess —
   the lexical term acts as a floor, the semantic term supplies recall
   beyond exact words.
@@ -159,19 +161,24 @@ type Hit = {
 
 ## 9. Acceptance test set (D4)
 
-A fixed file `test/queries.md`: ~20 (dump, query, expected-hit) triples
-spanning links, commands, addresses, notes, and *paraphrased* queries
-(where the query shares no words with the dump). Recall@3 is measured and
-reported in the post, with every miss named — the honesty table. Run the
-set twice: semantic-only and hybrid, so the blend's lift is a real
-measured delta, not a claim.
+A fixed file [`test/queries.md`](../test/queries.md): 20 (dump, query)
+pairs spanning links, commands, addresses, notes, and *paraphrased*
+queries (most share zero words with their dump). Each query is ranked
+against the full 20-item corpus (not just its own pair); a hit means its
+dump lands in the top 3.
+
+**VERIFIED D4, real model:** semantic-only 20/20 (100%), hybrid 20/20
+(100%), lexical-only floor 14/20 (70%, 6 named misses). Full table and
+the honest read (small-set caveat included) in `test/queries.md`.
 
 ## 10. Honest limits (state in the post)
 
 - Hybrid ranking narrows but doesn't erase semantic/lexical disagreement
   on edge cases — shown as a known behavior, not hidden.
 - 300M embedding quality has a ceiling; paraphrase recall is measured, not
-  assumed. Misses go in the table.
+  assumed. D4 result: 100% on a 20-item hand-written set — a real,
+  measured beat of keyword search, not a claim of perfection at scale or
+  on harder paraphrases. Stated as such, not oversold.
 - Share-to-cubby depends on OS/browser Web Share Target support
   (solid on Android, weak/absent on iOS Safari) — call this out rather
   than imply it works everywhere.
