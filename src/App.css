@@ -153,9 +153,67 @@
   color: var(--dim);
   border: 1px solid var(--line);
   border-radius: 6px;
-  padding: 8px 12px;
+  padding: 10px 12px;
   margin-bottom: 12px;
   background: var(--panel);
+}
+
+.progress-track {
+  margin-top: 8px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--accent);
+  transition: width 150ms ease-out;
+}
+
+.onboarding {
+  padding: 28px 4px 8px;
+  text-align: center;
+}
+
+.onboarding-lead {
+  font-family: var(--mono);
+  font-size: 14px;
+  color: var(--fg);
+  margin: 0 0 6px;
+}
+
+.onboarding-hint {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--dimmer);
+  margin: 0 0 16px;
+}
+
+.example-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.example-chip {
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 8px 14px;
+  min-height: 28px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel);
+  color: var(--dim);
+  cursor: pointer;
+  transition: border-color 120ms, color 120ms;
+}
+
+.example-chip:hover {
+  color: var(--fg);
+  border-color: var(--accent);
 }
 
 .bar {

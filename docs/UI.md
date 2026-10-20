@@ -177,17 +177,29 @@ the cozy end of the range.
 
 ## Empty & edge states (write real copy, not apologies)
 
-- **No cubby yet** (Ask, empty cubby): "nothing saved yet — switch to dump
-  and paste anything."
+- **No cubby yet** (either mode, empty cubby): a dedicated onboarding
+  block — "your cubby is empty — dump anything, no tags or folders," plus
+  4 example-dump chips (one per type: note, link, cmd, addr) that prefill
+  the dump box on click so a first-time user sees the loop immediately
+  rather than reading about it.
 - **No match** (Ask, query, nothing close): "nothing close in your cubby —
   try other words. it matches meaning, not exact text."
-- **Dump mode idle:** "paste a link, note, address, snippet — anything.
-  press ↩ and forget it. no tags, no folders."
+- **Dump mode idle, non-empty cubby:** the dump box placeholder still
+  reads "paste a link, note, address, snippet — anything. press ↩ and
+  forget it. no tags, no folders" — but below it the cubby's own recent
+  items now stay visible (read-only, no match %, no selection highlight)
+  so dump mode never goes to a blank screen once something's been saved.
 - **Model loading:** the cover state — "setting up on-device search… this
-  downloads once and stays on your device."
+  downloads once and stays on your device," with a real progress bar tied
+  to live download percent, shown non-blocking above the bar (shell and
+  manual search stay usable per SPEC §5).
 - **Semantic off (fallback):** a quiet banner — "on-device search
   unavailable here; searching by keyword. your data still never leaves
   the device."
+- **Meta-line, non-empty cubby:** always shows a type breakdown ("4 notes
+  · 2 links · 1 cmd · 1 addr") alongside the mode hint, so the screen
+  communicates real cubby state at a glance instead of just an item count
+  buried in the footer.
 
 ## Accessibility
 

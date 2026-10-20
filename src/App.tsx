@@ -12,6 +12,22 @@ type Mode = 'ask' | 'dump';
 const THEMES: ThemeName[] = ['terminal', 'paper', 'mono', 'cobalt', 'ember'];
 const QUERY_DEBOUNCE_MS = 120;
 
+const EXAMPLES = [
+  'wifi password: Sunflower92!',
+  'https://example.com/the-article-i-was-reading',
+  'docker run --rm -it -v $(pwd):/app node:22 npm install',
+  '123 Baker Street, London NW1 6XE',
+];
+
+function typeCounts(items: CubbyItem[]): string {
+  const counts: Record<string, number> = {};
+  for (const i of items) counts[i.type] = (counts[i.type] ?? 0) + 1;
+  const labels: Record<string, string> = { note: 'notes', link: 'links', cmd: 'commands', addr: 'addresses' };
+  return Object.entries(counts)
+    .map(([type, n]) => `${n} ${labels[type] ?? type}`)
+    .join(' · ');
+}
+
 function timeAgo(ms: number): string {
   const s = Math.floor((Date.now() - ms) / 1000);
   if (s < 60) return 'just now';
@@ -97,6 +113,15 @@ function App() {
     () => (modelStatus === 'unavailable' ? manualSearch(query, items) : hybridSearch(query, queryVector, items)),
     [query, queryVector, items, modelStatus],
   );
+
+  // Dump mode shows the cubby too (read-only recent list) — the screen
+  // never goes empty just because you're mid-dump.
+  const recentHits = useMemo(() => hybridSearch('', null, items), [items]);
+
+  function useExample(text: string) {
+    setMode('dump');
+    setDumpText(text);
+  }
 
   useEffect(() => setSelected(0), [query, mode]);
 
@@ -284,6 +309,15 @@ function App() {
         </div>
       )}
 
+      {modelStatus === 'loading' && (
+        <div className="banner">
+          setting up on-device search… this downloads once and stays on your device
+          <div className="progress-track">
+            <div className="progress-fill" style={{ width: `${Math.round(modelProgress * 100)}%` }} />
+          </div>
+        </div>
+      )}
+
       {modelStatus === 'unavailable' && (
         <div className="banner">on-device search unavailable here; searching by keyword. your data still never leaves the device.</div>
       )}
@@ -329,20 +363,34 @@ function App() {
         </button>
       </div>
 
-      {mode === 'ask' && (
+      {items.length === 0 ? (
+        <div className="onboarding">
+          <p className="onboarding-lead">your cubby is empty — dump anything, no tags or folders.</p>
+          <p className="onboarding-hint">try one of these, or paste your own:</p>
+          <div className="example-chips">
+            {EXAMPLES.map((ex) => (
+              <button key={ex} className="example-chip" onClick={() => useExample(ex)}>
+                {ex.length > 44 ? ex.slice(0, 44) + '…' : ex}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : (
         <>
           <div className="meta-line">
-            {items.length === 0 ? 'nothing saved yet — switch to dump and paste anything.' : 'recent · paste to add, type to ask'}
+            {mode === 'ask' ? 'recent · paste to add, type to ask' : 'your cubby · switch to ask to search it'}
+            {' — '}
+            {typeCounts(items)}
           </div>
-          <ul className="results" aria-label="Search results">
-            {hits.length === 0 && query.trim() && (
+          <ul className="results" aria-label={mode === 'ask' ? 'Search results' : 'Recent items'}>
+            {mode === 'ask' && hits.length === 0 && query.trim() && (
               <li className="empty" role="status">nothing close in your cubby — try other words. it matches meaning, not exact text.</li>
             )}
-            {hits.map((hit, i) => (
+            {(mode === 'ask' ? hits : recentHits).map((hit, i) => (
               <li
                 key={hit.item.id}
-                className={i === selected ? 'row selected' : 'row'}
-                aria-current={i === selected ? 'true' : undefined}
+                className={mode === 'ask' && i === selected ? 'row selected' : 'row'}
+                aria-current={mode === 'ask' && i === selected ? 'true' : undefined}
                 onClick={() => handleCopy(hit.item)}
               >
                 <span className="glyph" aria-hidden="true">
@@ -354,7 +402,7 @@ function App() {
                     {copied === hit.item.id ? '✓ copied' : `${hit.item.type} · ${timeAgo(hit.item.createdAt)}`}
                   </div>
                 </div>
-                <span className="match">{Math.round(hit.score * 100)}%</span>
+                {mode === 'ask' && <span className="match">{Math.round(hit.score * 100)}%</span>}
                 <button
                   className="delete-btn"
                   aria-label={`Delete "${hit.item.text.slice(0, 40)}"`}
