@@ -297,7 +297,12 @@ function App() {
   return (
     <div className="shell">
       <header className="topbar">
-        <span className="wordmark">cubby.</span>
+        <span className="brand">
+          <span className="brand-mark" aria-hidden="true">
+            ❯
+          </span>
+          <span className="wordmark">cubby.</span>
+        </span>
         <div className="topbar-right">
           <span className="status-line">● local · offline · nothing uploaded</span>
           <button
@@ -510,12 +515,12 @@ function App() {
         </>
       )}
 
-      {undoItem && (
+      <Collapse open={!!undoItem}>
         <div className="toast">
           deleted
           <button onClick={handleUndo}>undo</button>
         </div>
-      )}
+      </Collapse>
 
       <footer className="footer" aria-live="polite">
         {footerLabel} · {items.length} items
