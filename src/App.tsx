@@ -5,6 +5,8 @@ import { getAllItems, newItem, saveItem, deleteItem, clearAll, exportJSON, impor
 import { embedDocument, embedQuery, loadModel, onModelStatus, onModelLog, type ModelStatus, type LogLine } from './lib/embeddings';
 import { search as hybridSearch } from './lib/hybridScorer';
 import { search as manualSearch } from './lib/mockScorer';
+import { PolicyContent } from './content/policy';
+import { FaqContent } from './content/faq';
 import './App.css';
 
 type Mode = 'ask' | 'dump';
@@ -56,6 +58,89 @@ function Collapse({ open, children }: { open: boolean; children: React.ReactNode
   return (
     <div className={`collapse${open ? ' open' : ''}`} inert={!open}>
       <div className="collapse-inner">{children}</div>
+    </div>
+  );
+}
+
+// Reusable overlay primitive. Three variants: `popover` anchors below a
+// trigger button (compact, for the small settings panel), `modal` centers
+// (for longer reading content), `sheet` slides up from the bottom.
+// On < 900px all three fall back to the bottom-sheet style — thumb-reach,
+// mobile-native.
+type OverlayVariant = 'popover' | 'modal';
+function Overlay({
+  open,
+  onClose,
+  variant,
+  anchorRef,
+  title,
+  children,
+}: {
+  open: boolean;
+  onClose: () => void;
+  variant: OverlayVariant;
+  anchorRef?: React.RefObject<HTMLElement | null>;
+  title: string;
+  children: React.ReactNode;
+}) {
+  const panelRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLElement | null>(null);
+
+  // Position popover under its anchor on open. Modal centers via CSS.
+  useEffect(() => {
+    if (!open || variant !== 'popover' || !anchorRef?.current || !panelRef.current) return;
+    const r = anchorRef.current.getBoundingClientRect();
+    const el = panelRef.current;
+    // Position below the trigger, right-aligned to it; CSS media query
+    // overrides to a full-width bottom sheet below 900px.
+    el.style.setProperty('--anchor-top', `${r.bottom + 6}px`);
+    el.style.setProperty('--anchor-right', `${window.innerWidth - r.right}px`);
+  }, [open, variant, anchorRef]);
+
+  // Esc dismiss + focus trap entry/exit.
+  useEffect(() => {
+    if (!open) return;
+    triggerRef.current = (document.activeElement as HTMLElement) ?? null;
+    // Focus the first interactive element inside the body (skip the close
+    // button in the head — meaningful controls get focus, not dismiss).
+    const body = panelRef.current?.querySelector('.overlay-body');
+    const first = body?.querySelector<HTMLElement>(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+    );
+    first?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      // Return focus to whatever opened us.
+      triggerRef.current?.focus?.();
+    };
+  }, [open, onClose]);
+
+  if (!open) return null;
+  return (
+    <div className="overlay-root" role="presentation">
+      <div className="overlay-backdrop" onClick={onClose} aria-hidden="true" />
+      <div
+        ref={panelRef}
+        className={`overlay-panel overlay-${variant}`}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+      >
+        <div className="overlay-head">
+          <span className="overlay-title">{title}</span>
+          <button className="overlay-close" aria-label="Close" onClick={onClose}>
+            ×
+          </button>
+        </div>
+        <div className="overlay-body">{children}</div>
+      </div>
     </div>
   );
 }
@@ -223,6 +308,9 @@ function App() {
   const [selected, setSelected] = useState(0);
   const [copied, setCopied] = useState<string | null>(null);
   const [showSettings, setShowSettings] = useState(false);
+  const [showPolicy, setShowPolicy] = useState(false);
+  const [showFaq, setShowFaq] = useState(false);
+  const settingsBtnRef = useRef<HTMLButtonElement>(null);
   const [modelStatus, setModelStatus] = useState<ModelStatus>('idle');
   const [modelProgress, setModelProgress] = useState(0);
   const [logLines, setLogLines] = useState<readonly LogLine[]>([]);
@@ -476,6 +564,7 @@ function App() {
         <div className="topbar-right">
           <span className="status-line">● local · offline · nothing uploaded</span>
           <button
+            ref={settingsBtnRef}
             className="settings-btn"
             onClick={() => setShowSettings((v) => !v)}
             aria-expanded={showSettings}
@@ -500,7 +589,13 @@ function App() {
         </div>
       </Collapse>
 
-      <Collapse open={showSettings}>
+      <Overlay
+        open={showSettings}
+        onClose={() => setShowSettings(false)}
+        variant="popover"
+        anchorRef={settingsBtnRef}
+        title="settings"
+      >
         <div className="settings-panel" role="group" aria-label="Settings">
           <div className="settings-section">
             <span className="settings-label">theme</span>
@@ -565,7 +660,15 @@ function App() {
             </Collapse>
           </div>
         </div>
-      </Collapse>
+      </Overlay>
+
+      <Overlay open={showPolicy} onClose={() => setShowPolicy(false)} variant="modal" title="privacy">
+        <PolicyContent />
+      </Overlay>
+
+      <Overlay open={showFaq} onClose={() => setShowFaq(false)} variant="modal" title="faq">
+        <FaqContent />
+      </Overlay>
 
       {/* Inline banners stay for mobile (< 900px) where there's no side panel.
           Hidden by CSS at the breakpoint since the side panel takes over. */}
@@ -740,7 +843,22 @@ function App() {
       </div>
 
       <footer className="footer" aria-live="polite">
-        {footerLabel} · {items.length} items
+        <span className="footer-links">
+          <button type="button" className="footer-link" onClick={() => setShowPolicy(true)}>
+            privacy
+          </button>
+          <span className="footer-dot">·</span>
+          <button type="button" className="footer-link" onClick={() => setShowFaq(true)}>
+            faq
+          </button>
+          <span className="footer-dot">·</span>
+          <a href="https://github.com/ibrahim-iqbal/cubby" target="_blank" rel="noreferrer" className="footer-link">
+            github
+          </a>
+        </span>
+        <span className="footer-status">
+          {footerLabel} · {items.length} items
+        </span>
       </footer>
       </div>
     </>
