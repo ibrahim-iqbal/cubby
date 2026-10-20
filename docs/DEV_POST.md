@@ -2,6 +2,9 @@
 
 *A Hacktoberfest Open-Source AI Challenge Week 3 — "Slow and Steady" — submission.*
 
+{% embed https://github.com/ibrahim-iqbal/cubby/raw/main/docs/design/post/00-intro.mp4 %}
+<!-- ASSET 10 (intro video, 10s loop) — raw GitHub URL works as DEV embed source once repo is public -->
+
 ![cubby — the UI at a glance](./design/post/01-hero.png)
 <!-- ASSET 2 (hero screenshot) — see docs/DEV_POST_ASSETS.md -->
 
