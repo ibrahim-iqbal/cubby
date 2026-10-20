@@ -216,49 +216,72 @@ function App() {
     <div className="shell">
       <header className="topbar">
         <span className="wordmark">cubby.</span>
-        <button className="pill-btn" onClick={() => setShowSettings((v) => !v)} aria-label="Settings">
-          ● local · offline · nothing uploaded
-        </button>
+        <div className="topbar-right">
+          <span className="status-line" aria-hidden="true">
+            ● local · offline · nothing uploaded
+          </span>
+          <button
+            className="settings-btn"
+            onClick={() => setShowSettings((v) => !v)}
+            aria-expanded={showSettings}
+            aria-label={showSettings ? 'Close settings' : 'Open settings'}
+          >
+            settings
+          </button>
+        </div>
       </header>
 
       {showSettings && (
-        <div className="theme-picker" role="group" aria-label="Settings">
-          {THEMES.map((t) => (
-            <button
-              key={t}
-              className={`swatch${settings.theme === t ? ' active' : ''}`}
-              data-theme={t}
-              onClick={() => setSettings((s) => ({ ...s, theme: t }))}
-            >
-              {t}
-            </button>
-          ))}
-          <div className="mode-toggle">
-            {(['light', 'dark', 'system'] as const).map((m) => (
-              <button
-                key={m}
-                className={settings.mode === m ? 'active' : ''}
-                onClick={() => setSettings((s) => ({ ...s, mode: m }))}
-              >
-                {m}
-              </button>
-            ))}
+        <div className="settings-panel" role="group" aria-label="Settings">
+          <div className="settings-section">
+            <span className="settings-label">theme</span>
+            <div className="settings-row">
+              {THEMES.map((t) => (
+                <button
+                  key={t}
+                  className={`swatch${settings.theme === t ? ' active' : ''}`}
+                  data-theme={t}
+                  onClick={() => setSettings((s) => ({ ...s, theme: t }))}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
           </div>
-          <div className="settings-actions">
-            <button onClick={handleExport}>export</button>
-            <button onClick={() => importRef.current?.click()}>import</button>
-            <input
-              ref={importRef}
-              type="file"
-              accept="application/json"
-              style={{ display: 'none' }}
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (f) handleImportFile(f);
-                e.target.value = '';
-              }}
-            />
-            <button onClick={handleClearAll}>clear all</button>
+          <div className="settings-section">
+            <span className="settings-label">mode</span>
+            <div className="settings-row">
+              {(['light', 'dark', 'system'] as const).map((m) => (
+                <button
+                  key={m}
+                  className={settings.mode === m ? 'active' : ''}
+                  onClick={() => setSettings((s) => ({ ...s, mode: m }))}
+                >
+                  {m}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="settings-section">
+            <span className="settings-label">data</span>
+            <div className="settings-row">
+              <button onClick={handleExport}>export</button>
+              <button onClick={() => importRef.current?.click()}>import</button>
+              <input
+                ref={importRef}
+                type="file"
+                accept="application/json"
+                style={{ display: 'none' }}
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) handleImportFile(f);
+                  e.target.value = '';
+                }}
+              />
+              <button className="danger" onClick={handleClearAll}>
+                clear all
+              </button>
+            </div>
           </div>
         </div>
       )}

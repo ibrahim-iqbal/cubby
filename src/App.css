@@ -8,6 +8,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
   margin-bottom: 24px;
 }
 
@@ -17,29 +19,72 @@
   font-size: 15px;
 }
 
-.pill-btn {
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.status-line {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--dim);
+}
+
+.settings-btn {
   font-family: var(--mono);
   font-size: 11px;
   color: var(--dim);
   background: none;
-  border: none;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 3px 8px;
   cursor: pointer;
-  padding: 0;
+  transition: border-color 120ms, color 120ms;
 }
 
-.theme-picker {
+.settings-btn:hover,
+.settings-btn[aria-expanded='true'] {
+  color: var(--fg);
+  border-color: var(--line2);
+}
+
+.settings-panel {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  flex-direction: column;
+  gap: 12px;
   margin-bottom: 16px;
-  padding: 12px;
+  padding: 14px;
   border: 1px solid var(--line);
   border-radius: 6px;
   background: var(--panel);
+  animation: fade-in 140ms ease-out;
 }
 
-.theme-picker .swatch,
-.theme-picker .mode-toggle button {
+.settings-section {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.settings-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--dimmer);
+  width: 48px;
+  flex-shrink: 0;
+}
+
+.settings-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.settings-panel button {
   font-family: var(--mono);
   font-size: 11px;
   padding: 4px 10px;
@@ -48,39 +93,24 @@
   background: var(--bg);
   color: var(--dim);
   cursor: pointer;
+  transition: border-color 120ms, color 120ms, background 120ms;
 }
 
-.theme-picker .swatch.active,
-.theme-picker .mode-toggle button.active {
+.settings-panel button:hover {
+  color: var(--fg);
+  border-color: var(--line2);
+}
+
+.settings-panel .swatch.active,
+.settings-panel .settings-row button.active {
   border-color: var(--accent);
   color: var(--fg);
   background: var(--accent-dim);
 }
 
-.mode-toggle {
-  display: flex;
-  gap: 6px;
-  margin-left: auto;
-}
-
-.settings-actions {
-  display: flex;
-  gap: 6px;
-  width: 100%;
-  border-top: 1px solid var(--line);
-  padding-top: 10px;
-  margin-top: 4px;
-}
-
-.settings-actions button {
-  font-family: var(--mono);
-  font-size: 11px;
-  padding: 4px 10px;
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  background: var(--bg);
-  color: var(--dim);
-  cursor: pointer;
+.settings-panel button.danger:hover {
+  color: var(--accent);
+  border-color: var(--accent);
 }
 
 .toast {
@@ -98,6 +128,7 @@
   border: 1px solid var(--line2);
   border-radius: 6px;
   padding: 8px 14px;
+  animation: fade-in 140ms ease-out;
 }
 
 .toast button {
@@ -108,6 +139,10 @@
   border: none;
   cursor: pointer;
   padding: 0;
+}
+
+.toast button:hover {
+  text-decoration: underline;
 }
 
 .banner {
@@ -129,11 +164,13 @@
   border-radius: 8px;
   background: var(--panel);
   padding: 14px 16px;
+  transition: border-color 120ms;
 }
 
 .bar:focus-within {
   outline: 2px solid var(--accent);
   outline-offset: -1px;
+  border-color: var(--accent);
 }
 
 .prompt {
@@ -143,6 +180,7 @@
 
 .bar-input {
   flex: 1;
+  min-width: 0;
   font-family: var(--mono);
   font-size: 14px;
   background: none;
@@ -177,6 +215,11 @@
   background: none;
   color: var(--dim);
   cursor: pointer;
+  transition: border-color 120ms, color 120ms, background 120ms;
+}
+
+.segmented button:hover {
+  color: var(--fg);
 }
 
 .segmented button.active {
@@ -206,13 +249,19 @@
   gap: 12px;
   padding: 10px 4px;
   border-bottom: 1px solid var(--line);
+  border-radius: 4px;
   cursor: pointer;
   animation: fade-in 180ms ease-out;
+  transition: background 100ms;
 }
 
 @keyframes fade-in {
   from { opacity: 0; transform: translateY(2px); }
   to { opacity: 1; transform: none; }
+}
+
+.results .row:hover {
+  background: var(--panel);
 }
 
 .results .row.selected {
@@ -262,16 +311,21 @@
 .delete-btn {
   font-family: var(--mono);
   font-size: 14px;
+  line-height: 1;
   color: var(--dimmer);
   background: none;
   border: none;
+  border-radius: 3px;
   cursor: pointer;
   flex-shrink: 0;
-  padding: 0 0 0 6px;
+  padding: 2px 4px;
+  margin-left: 2px;
+  transition: color 100ms, background 100ms;
 }
 
 .delete-btn:hover {
   color: var(--fg);
+  background: var(--line);
 }
 
 .results .empty {
@@ -287,4 +341,28 @@
   color: var(--dimmer);
   text-align: right;
   margin-top: 24px;
+}
+
+@media (max-width: 480px) {
+  .shell {
+    padding: 24px 16px;
+  }
+
+  .topbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .status-line {
+    font-size: 10px;
+  }
+
+  .hint {
+    display: none;
+  }
+
+  .settings-label {
+    width: auto;
+  }
 }
