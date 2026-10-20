@@ -51,6 +51,13 @@ function App() {
   const [modelProgress, setModelProgress] = useState(0);
   const [queryVector, setQueryVector] = useState<Float32Array | null>(null);
   const [undoItem, setUndoItem] = useState<CubbyItem | null>(null);
+  const [showIntro, setShowIntro] = useState(() => {
+    try {
+      return localStorage.getItem('cubby.seenIntro.v1') !== '1';
+    } catch {
+      return true;
+    }
+  });
   const barRef = useRef<HTMLInputElement>(null);
   const importRef = useRef<HTMLInputElement>(null);
   const undoTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -97,14 +104,27 @@ function App() {
     return unsub;
   }, []);
 
-  // Debounced query embedding (ARCHITECTURE §4.2).
+  // Debounced query embedding (ARCHITECTURE §4.2). Tracks in-flight state
+  // so the UI can say "searching…" instead of looking broken — a
+  // zero-shared-word query has nothing to show from the lexical side
+  // alone while the semantic vector is still resolving (can take ~1-2s).
+  const [searching, setSearching] = useState(false);
+  const queryTokenRef = useRef(0);
+
   useEffect(() => {
     if (modelStatus !== 'ready' || !query.trim()) {
       setQueryVector(null);
+      setSearching(false);
       return;
     }
+    const myToken = ++queryTokenRef.current;
+    setSearching(true);
     const t = setTimeout(() => {
-      embedQuery(query).then(setQueryVector);
+      embedQuery(query).then((v) => {
+        if (queryTokenRef.current !== myToken) return; // a newer query superseded this one
+        setQueryVector(v);
+        setSearching(false);
+      });
     }, QUERY_DEBOUNCE_MS);
     return () => clearTimeout(t);
   }, [query, modelStatus]);
@@ -181,6 +201,15 @@ function App() {
     setItems([]);
   }
 
+  function dismissIntro() {
+    setShowIntro(false);
+    try {
+      localStorage.setItem('cubby.seenIntro.v1', '1');
+    } catch {
+      // not persisted — intro just reappears next load, harmless
+    }
+  }
+
   async function handleCopy(item: CubbyItem) {
     try {
       await navigator.clipboard.writeText(item.text);
@@ -253,6 +282,17 @@ function App() {
           </button>
         </div>
       </header>
+
+      {showIntro && (
+        <div className="intro">
+          <p>
+            <strong>dump</strong> anything — no tags, no title, just paste and press ↩.{' '}
+            <strong>ask</strong> for it back in your own words later; it matches by meaning, so you
+            don't need the exact words you saved it with.
+          </p>
+          <button onClick={dismissIntro}>got it</button>
+        </div>
+      )}
 
       {showSettings && (
         <div className="settings-panel" role="group" aria-label="Settings">
@@ -392,7 +432,9 @@ function App() {
           </div>
           <ul className="results" aria-label={mode === 'ask' ? 'Search results' : 'Recent items'}>
             {mode === 'ask' && hits.length === 0 && query.trim() && (
-              <li className="empty" role="status">nothing close in your cubby — try other words. it matches meaning, not exact text.</li>
+              <li className="empty" role="status">
+                {searching ? 'searching by meaning…' : 'nothing close in your cubby — try other words. it matches meaning, not exact text.'}
+              </li>
             )}
             {(mode === 'ask' ? hits : recentHits).map((hit, i) => (
               <li

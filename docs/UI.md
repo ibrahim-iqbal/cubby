@@ -187,8 +187,14 @@ the cozy end of the range.
   as real result rows — same left-aligned list styling as everything
   else, not a centered pill cluster — that prefill the dump box on
   click. One per type (note, link, cmd, addr).
-- **No match** (Ask, query, nothing close): "nothing close in your cubby —
-  try other words. it matches meaning, not exact text."
+- **Searching** (Ask, query typed, semantic vector still resolving):
+  "searching by meaning…" — not the same message as a true no-match.
+  Real bug this fixed: a zero-shared-word query has nothing to show from
+  the lexical side alone while the ~1-2s query embed is in flight, so
+  without this the screen looked identical to "nothing found" for
+  exactly the paraphrase queries the product exists for.
+- **No match** (Ask, query settled, nothing close): "nothing close in
+  your cubby — try other words. it matches meaning, not exact text."
 - **Dump mode idle, non-empty cubby:** the dump box placeholder still
   reads "paste a link, note, address, snippet — anything. press ↩ and
   forget it. no tags, no folders" — but below it the cubby's own recent
@@ -198,6 +204,10 @@ the cozy end of the range.
   downloads once and stays on your device," with a real progress bar tied
   to live download percent, shown non-blocking above the bar (shell and
   manual search stay usable per SPEC §5).
+- **First visit:** a one-time, dismissible intro banner states the whole
+  loop in one breath — dump needs no tags/title, ask matches by meaning
+  not exact wording — so a new user doesn't have to infer the product
+  from an empty screen. Persisted via `localStorage` so it shows once.
 - **Semantic off (fallback):** a quiet banner — "on-device search
   unavailable here; searching by keyword. your data still never leaves
   the device."
