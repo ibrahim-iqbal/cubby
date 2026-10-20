@@ -303,10 +303,24 @@
   align-items: center;
   gap: 10px;
   border: 1px solid var(--line2);
+  border-left: 3px solid var(--line2);
   border-radius: 8px;
   background: var(--panel);
-  padding: 14px 16px;
-  transition: border-color 120ms;
+  padding: 14px 16px 14px 14px;
+  transition: border-color 120ms, background 120ms;
+}
+
+/* Mode-reactive — dump mode tints the left edge to signal "writing into
+   the cubby," ask mode shows the retrieval-y accent. The prompt char
+   also changes (❯ for ask, + for dump) so the mode is readable at the
+   bar itself, not only in the tiny segmented control below. */
+.bar-ask {
+  border-left-color: var(--accent);
+}
+
+.bar-dump {
+  border-left-color: var(--accent);
+  background: var(--accent-dim);
 }
 
 .bar:focus-within {
@@ -317,7 +331,10 @@
 
 .prompt {
   font-family: var(--mono);
+  font-size: 16px;
   color: var(--accent);
+  width: 14px;
+  text-align: center;
 }
 
 .bar-input {
@@ -336,11 +353,39 @@
 }
 
 .hint {
-  font-family: var(--mono);
-  font-size: 13px;
-  letter-spacing: 0.01em;
-  color: var(--dim);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   white-space: nowrap;
+}
+
+.hint kbd {
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1;
+  color: var(--dim);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  padding: 3px 6px;
+  min-width: 20px;
+  text-align: center;
+}
+
+.hint-label {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--dim);
+  margin-left: 4px;
+}
+
+/* Hide kbd affordance on real touch devices — key chips imply a keyboard
+   that isn't there. */
+@media (hover: none) and (pointer: coarse) {
+  .hint {
+    display: none;
+  }
 }
 
 .segmented {
@@ -381,10 +426,11 @@
 }
 
 .results .row {
+  position: relative;
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  padding: 10px 4px;
+  gap: 10px;
+  padding: 10px 4px 10px 12px;
   border-bottom: 1px solid var(--line);
   border-radius: 4px;
   cursor: pointer;
@@ -409,12 +455,57 @@
 
 .results .row .glyph {
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: 15px;
+  line-height: 1.1;
   color: var(--dim);
-  width: 36px;
+  width: 20px;
   flex-shrink: 0;
+  text-align: center;
   padding-top: 2px;
   transition: color 120ms;
+}
+
+/* Left-edge match score bar — visualizes rank strength per row instead
+   of a column of "100%" text. `--row-score` is piped in as a CSS var
+   from the inline style on the row. */
+.score-bar {
+  position: absolute;
+  left: 0;
+  top: 10%;
+  bottom: 10%;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--accent);
+  opacity: calc(0.25 + var(--row-score, 0) * 0.75);
+  transform: scaleY(var(--row-score, 1));
+  transform-origin: center;
+  transition: transform 180ms, opacity 180ms;
+}
+
+/* Type-group divider — ── notes ──────────────────, delivers on the
+   "cubby = compartments" brand metaphor when browsing (empty query). */
+.type-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 4px 6px;
+  font-family: var(--mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--dimmer);
+}
+
+.type-divider::before,
+.type-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
+.type-divider-label {
+  flex-shrink: 0;
 }
 
 .results .content {
@@ -438,13 +529,6 @@
   margin-top: 2px;
 }
 
-.results .match {
-  font-family: var(--mono);
-  font-size: 11px;
-  color: var(--dim);
-  flex-shrink: 0;
-  padding-top: 2px;
-}
 
 .delete-btn {
   font-family: var(--mono);

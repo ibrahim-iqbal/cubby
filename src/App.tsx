@@ -20,6 +20,15 @@ const EXAMPLES = [
   '123 Baker Street, London NW1 6XE',
 ];
 
+// Monochrome, terminal-native glyphs — scannable at a glance in a way
+// three rows reading "note" / "note" / "note" never were.
+const TYPE_GLYPHS: Record<string, string> = {
+  note: '≡',
+  link: '↗',
+  cmd: '$',
+  addr: '◉',
+};
+
 function typeCounts(items: CubbyItem[]): string {
   const counts: Record<string, number> = {};
   for (const i of items) counts[i.type] = (counts[i.type] ?? 0) + 1;
@@ -407,9 +416,9 @@ function App() {
         <div className="banner">on-device search unavailable here; searching by keyword. your data still never leaves the device.</div>
       </Collapse>
 
-      <div className="bar">
+      <div className={`bar bar-${mode}`}>
         <span className="prompt" aria-hidden="true">
-          ❯
+          {mode === 'ask' ? '❯' : '+'}
         </span>
         {mode === 'ask' ? (
           <input
@@ -435,7 +444,19 @@ function App() {
           />
         )}
         <span className="hint" aria-hidden="true">
-          {mode === 'ask' ? '↑↓  ↩ copy' : '↩ save'}
+          {mode === 'ask' ? (
+            <>
+              <kbd>↑</kbd>
+              <kbd>↓</kbd>
+              <kbd>↩</kbd>
+              <span className="hint-label">copy</span>
+            </>
+          ) : (
+            <>
+              <kbd>↩</kbd>
+              <span className="hint-label">save</span>
+            </>
+          )}
         </span>
       </div>
 
@@ -458,7 +479,7 @@ function App() {
               {EXAMPLES.map((ex) => (
                 <li key={ex} className="row example-row" onClick={() => useExample(ex)}>
                   <span className="glyph" aria-hidden="true">
-                    eg
+                    ·
                   </span>
                   <div className="content">
                     <div className="text">{ex}</div>
@@ -481,36 +502,55 @@ function App() {
                 {searching ? 'searching by meaning…' : 'nothing close in your cubby — try other words. it matches meaning, not exact text.'}
               </li>
             )}
-            {(mode === 'ask' ? hits : recentHits).map((hit, i) => (
-              <li key={hit.item.id} className={`row-collapse${removingIds.has(hit.item.id) ? '' : ' open'}`}>
-                <div
-                  className={mode === 'ask' && i === selected ? 'row selected' : 'row'}
-                  aria-current={mode === 'ask' && i === selected ? 'true' : undefined}
-                  onClick={() => handleCopy(hit.item)}
-                >
-                  <span className="glyph" aria-hidden="true">
-                    {hit.item.type}
-                  </span>
-                  <div className="content">
-                    <div className="text">{hit.item.text}</div>
-                    <div className="source">
-                      {copied === hit.item.id ? '✓ copied' : `${hit.item.type} · ${timeAgo(hit.item.createdAt)}`}
+            {(() => {
+              const list = mode === 'ask' ? hits : recentHits;
+              const browsing = !query.trim(); // group only when not actively searching
+              let prevType: string | null = null;
+              return list.map((hit, i) => {
+                const showDivider = browsing && hit.item.type !== prevType;
+                prevType = hit.item.type;
+                return (
+                  <li key={hit.item.id} className={`row-collapse${removingIds.has(hit.item.id) ? '' : ' open'}`}>
+                    <div>
+                      {showDivider && (
+                        <div className="type-divider" aria-hidden="true">
+                          <span className="type-divider-label">
+                            {hit.item.type === 'cmd' ? 'commands' : hit.item.type === 'addr' ? 'addresses' : `${hit.item.type}s`}
+                          </span>
+                        </div>
+                      )}
+                      <div
+                        className={mode === 'ask' && i === selected ? 'row selected' : 'row'}
+                        aria-current={mode === 'ask' && i === selected ? 'true' : undefined}
+                        onClick={() => handleCopy(hit.item)}
+                        style={mode === 'ask' ? { ['--row-score' as string]: hit.score } : undefined}
+                      >
+                        {mode === 'ask' && <span className="score-bar" aria-hidden="true" />}
+                        <span className="glyph" aria-hidden="true" title={hit.item.type}>
+                          {TYPE_GLYPHS[hit.item.type] ?? '•'}
+                        </span>
+                        <div className="content">
+                          <div className="text">{hit.item.text}</div>
+                          <div className="source">
+                            {copied === hit.item.id ? '✓ copied' : timeAgo(hit.item.createdAt)}
+                          </div>
+                        </div>
+                        <button
+                          className="delete-btn"
+                          aria-label={`Delete "${hit.item.text.slice(0, 40)}"`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(hit.item);
+                          }}
+                        >
+                          ×
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                  {mode === 'ask' && <span className="match">{Math.round(hit.score * 100)}%</span>}
-                  <button
-                    className="delete-btn"
-                    aria-label={`Delete "${hit.item.text.slice(0, 40)}"`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDelete(hit.item);
-                    }}
-                  >
-                    ×
-                  </button>
-                </div>
-              </li>
-            ))}
+                  </li>
+                );
+              });
+            })()}
           </ul>
         </>
       )}
