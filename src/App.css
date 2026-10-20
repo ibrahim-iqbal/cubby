@@ -658,3 +658,191 @@
     width: auto;
   }
 }
+
+/* ---- 60/40 split layout (desktop ≥ 900px) ---------------------------- */
+
+/* On mobile, split is a single column — main column stacked above the
+   side panel, side panel sections collapse below results. Keyboard
+   legend and model-card hide since they're redundant with inline UI. */
+.split {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+}
+
+.split-main {
+  min-width: 0;
+}
+
+.side-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  background: var(--bg);
+  min-width: 0;
+}
+
+/* Hide side panel entirely on narrow — compartments are decorative,
+   model status falls back to the inline .banner, keyboard legend
+   is irrelevant on touch. */
+@media (max-width: 899px) {
+  .side-panel {
+    display: none;
+  }
+}
+
+@media (min-width: 900px) {
+  .shell {
+    max-width: 980px;
+  }
+  .split {
+    grid-template-columns: minmax(0, 3fr) minmax(240px, 2fr);
+    gap: 32px;
+  }
+  /* On desktop the side panel owns model status — hide the inline banners. */
+  .main-only-banners {
+    display: none;
+  }
+}
+
+.side-section {
+  background: var(--bg);
+}
+
+.side-title {
+  font-family: var(--mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--dimmer);
+  margin: 0 0 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.side-title-count {
+  color: var(--dimmer);
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 10px;
+}
+
+/* Loading-log stream — terminal-style, auto-scrolling. */
+.log-stream {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--dim);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 10px 12px;
+  max-height: 180px;
+  overflow-y: auto;
+  line-height: 1.6;
+}
+
+.log-line {
+  word-break: break-word;
+}
+
+.log-time {
+  color: var(--dimmer);
+  margin-right: 4px;
+  white-space: pre;
+}
+
+/* Compact model info card (replaces log stream once loaded). */
+.model-card {
+  font-family: var(--mono);
+  font-size: 11px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 10px 12px;
+}
+
+.model-card-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 3px 0;
+  color: var(--fg);
+}
+
+.model-card-row > span:first-child {
+  color: var(--dimmer);
+}
+
+/* Compartment grid — the "cubby" metaphor made literal. 6-col square grid,
+   each slot ~24px, type color via class. Clickable when filled. */
+.compartments {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 4px;
+}
+
+.slot {
+  aspect-ratio: 1;
+  min-height: 24px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: default;
+  transition: border-color 100ms, background 100ms;
+  padding: 0;
+}
+
+.slot.filled {
+  cursor: pointer;
+  background: var(--accent-dim);
+  border-color: var(--line2);
+  color: var(--fg);
+}
+
+.slot.filled:hover {
+  border-color: var(--accent);
+}
+
+/* Keyboard legend */
+.legend {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 12px;
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 11px;
+  align-items: center;
+}
+
+.legend dt {
+  display: inline-flex;
+  gap: 2px;
+  margin: 0;
+}
+
+.legend dd {
+  margin: 0;
+  color: var(--dim);
+}
+
+.legend kbd {
+  font-family: var(--mono);
+  font-size: 10px;
+  line-height: 1;
+  color: var(--dim);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-bottom-width: 2px;
+  border-radius: 3px;
+  padding: 2px 5px;
+  min-width: 16px;
+  text-align: center;
+}

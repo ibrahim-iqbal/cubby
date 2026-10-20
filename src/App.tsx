@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { CubbyItem, Settings, ThemeName } from './types';
 import { applyTheme, loadSettings, saveSettings } from './lib/settings';
 import { getAllItems, newItem, saveItem, deleteItem, clearAll, exportJSON, importJSON } from './lib/storage';
-import { embedDocument, embedQuery, loadModel, onModelStatus, type ModelStatus } from './lib/embeddings';
+import { embedDocument, embedQuery, loadModel, onModelStatus, onModelLog, type ModelStatus, type LogLine } from './lib/embeddings';
 import { search as hybridSearch } from './lib/hybridScorer';
 import { search as manualSearch } from './lib/mockScorer';
 import './App.css';
@@ -96,6 +96,124 @@ function CursorGlyphs() {
   return <div ref={ref} className="cursor-glyphs" aria-hidden="true" />;
 }
 
+// Side panel for ≥ 900px viewports: compartment-grid viz, model status
+// / loading-log stream, and the full keyboard legend. Hidden on mobile via
+// CSS; on narrow viewports the main column holds everything (status returns
+// to the inline banner there).
+function SidePanel({
+  items,
+  modelStatus,
+  logLines,
+  onItemClick,
+}: {
+  items: CubbyItem[];
+  modelStatus: ModelStatus;
+  logLines: readonly LogLine[];
+  onItemClick: (item: CubbyItem) => void;
+}) {
+  const logRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll the log to its tail on each append.
+  useEffect(() => {
+    const el = logRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [logLines]);
+
+  // Pad to a nice grid size — 36 slots = 6×6, enough to hint density
+  // without pretending to represent large cubbies. Real counts live in the
+  // header text (`47 saved`), the grid is a visual summary.
+  const SLOTS = 36;
+  const recentItems = items.slice(0, SLOTS);
+
+  return (
+    <aside className="side-panel" aria-label="cubby panel">
+      <section className="side-section">
+        <h2 className="side-title">model</h2>
+        {modelStatus === 'loading' && (
+          <div ref={logRef} className="log-stream" role="log" aria-live="polite" aria-atomic="false">
+            {logLines.map((l, i) => (
+              <div key={i} className="log-line">
+                <span className="log-time">[{l.t.toFixed(1).padStart(5, ' ')}s]</span> {l.msg}
+              </div>
+            ))}
+          </div>
+        )}
+        {modelStatus === 'ready' && (
+          <div className="model-card">
+            <div className="model-card-row">
+              <span>name</span>
+              <span>EmbeddingGemma</span>
+            </div>
+            <div className="model-card-row">
+              <span>size</span>
+              <span>300M · q8</span>
+            </div>
+            <div className="model-card-row">
+              <span>vector</span>
+              <span>256-dim</span>
+            </div>
+            <div className="model-card-row">
+              <span>runs</span>
+              <span>on your device</span>
+            </div>
+          </div>
+        )}
+        {modelStatus === 'unavailable' && (
+          <div className="model-card">
+            <div className="model-card-row">
+              <span>mode</span>
+              <span>keyword fallback</span>
+            </div>
+            <div className="model-card-row">
+              <span>reason</span>
+              <span>model unavailable</span>
+            </div>
+          </div>
+        )}
+        {modelStatus === 'idle' && <div className="log-stream">waiting…</div>}
+      </section>
+
+      <section className="side-section">
+        <h2 className="side-title">
+          cubby <span className="side-title-count">{items.length} saved</span>
+        </h2>
+        <div className="compartments" aria-hidden="true">
+          {Array.from({ length: SLOTS }, (_, i) => {
+            const it = recentItems[i];
+            return (
+              <button
+                key={i}
+                className={`slot${it ? ` filled type-${it.type}` : ''}`}
+                disabled={!it}
+                onClick={it ? () => onItemClick(it) : undefined}
+                title={it ? it.text.slice(0, 60) : undefined}
+              >
+                {it ? TYPE_GLYPHS[it.type] ?? '·' : ''}
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="side-section">
+        <h2 className="side-title">keys</h2>
+        <dl className="legend">
+          <dt><kbd>⌘</kbd><kbd>K</kbd></dt>
+          <dd>focus command bar</dd>
+          <dt><kbd>↑</kbd><kbd>↓</kbd></dt>
+          <dd>navigate results</dd>
+          <dt><kbd>↩</kbd></dt>
+          <dd>copy / save</dd>
+          <dt><kbd>⇥</kbd></dt>
+          <dd>toggle ask / dump</dd>
+          <dt><kbd>esc</kbd></dt>
+          <dd>clear query</dd>
+        </dl>
+      </section>
+    </aside>
+  );
+}
+
 function App() {
   const [settings, setSettings] = useState<Settings>(() => loadSettings());
   const [items, setItems] = useState<CubbyItem[]>([]);
@@ -107,6 +225,7 @@ function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [modelStatus, setModelStatus] = useState<ModelStatus>('idle');
   const [modelProgress, setModelProgress] = useState(0);
+  const [logLines, setLogLines] = useState<readonly LogLine[]>([]);
   const [queryVector, setQueryVector] = useState<Float32Array | null>(null);
   const [undoItem, setUndoItem] = useState<CubbyItem | null>(null);
   const [pendingImport, setPendingImport] = useState<{ text: string } | null>(null);
@@ -156,12 +275,16 @@ function App() {
   // Kick off the model load once on mount (SPEC §5: shell + manual search
   // usable immediately, semantic unlocks when ready).
   useEffect(() => {
-    const unsub = onModelStatus((s, p) => {
+    const unsubStatus = onModelStatus((s, p) => {
       setModelStatus(s);
       setModelProgress(p);
     });
+    const unsubLog = onModelLog((lines) => setLogLines([...lines]));
     loadModel();
-    return unsub;
+    return () => {
+      unsubStatus();
+      unsubLog();
+    };
   }, []);
 
   // Debounced query embedding (ARCHITECTURE §4.2). Tracks in-flight state
@@ -363,6 +486,9 @@ function App() {
         </div>
       </header>
 
+      <div className="split">
+      <main className="split-main">
+
       <Collapse open={showIntro}>
         <div className="intro">
           <p>
@@ -441,18 +567,22 @@ function App() {
         </div>
       </Collapse>
 
-      <Collapse open={modelStatus === 'loading'}>
-        <div className="banner">
-          setting up on-device search… this downloads once and stays on your device
-          <div className="progress-track">
-            <div className="progress-fill" style={{ width: `${Math.round(modelProgress * 100)}%` }} />
+      {/* Inline banners stay for mobile (< 900px) where there's no side panel.
+          Hidden by CSS at the breakpoint since the side panel takes over. */}
+      <div className="main-only-banners">
+        <Collapse open={modelStatus === 'loading'}>
+          <div className="banner">
+            setting up on-device search… this downloads once and stays on your device
+            <div className="progress-track">
+              <div className="progress-fill" style={{ width: `${Math.round(modelProgress * 100)}%` }} />
+            </div>
           </div>
-        </div>
-      </Collapse>
+        </Collapse>
 
-      <Collapse open={modelStatus === 'unavailable'}>
-        <div className="banner">on-device search unavailable here; searching by keyword. your data still never leaves the device.</div>
-      </Collapse>
+        <Collapse open={modelStatus === 'unavailable'}>
+          <div className="banner">on-device search unavailable here; searching by keyword. your data still never leaves the device.</div>
+        </Collapse>
+      </div>
 
       <div className={`bar bar-${mode}`}>
         <span className="prompt" aria-hidden="true">
@@ -599,6 +729,15 @@ function App() {
           <button onClick={handleUndo}>undo</button>
         </div>
       </Collapse>
+
+      </main>
+      <SidePanel
+        items={items}
+        modelStatus={modelStatus}
+        logLines={logLines}
+        onItemClick={handleCopy}
+      />
+      </div>
 
       <footer className="footer" aria-live="polite">
         {footerLabel} · {items.length} items
