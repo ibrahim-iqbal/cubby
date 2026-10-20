@@ -31,17 +31,25 @@
   color: var(--dim);
 }
 
-.settings-btn {
+/* Shared pill-button base — settings trigger, settings-panel controls, and
+   the ask/dump toggle are visually the same control at three call sites;
+   consolidated here instead of three near-duplicate declarations. */
+.settings-btn,
+.settings-panel button,
+.segmented button {
   font-family: var(--mono);
-  font-size: 11px;
-  color: var(--dim);
-  background: none;
-  border: 1px solid var(--line);
-  border-radius: 4px;
   padding: 6px 10px;
   min-height: 28px;
+  border-radius: 4px;
+  color: var(--dim);
   cursor: pointer;
-  transition: border-color 120ms, color 120ms;
+  transition: border-color 120ms, color 120ms, background 120ms;
+}
+
+.settings-btn {
+  font-size: 11px;
+  background: none;
+  border: 1px solid var(--line);
 }
 
 .settings-btn:hover,
@@ -86,16 +94,9 @@
 }
 
 .settings-panel button {
-  font-family: var(--mono);
   font-size: 11px;
-  padding: 6px 10px;
-  min-height: 28px;
   border: 1px solid var(--line);
-  border-radius: 4px;
   background: var(--bg);
-  color: var(--dim);
-  cursor: pointer;
-  transition: border-color 120ms, color 120ms, background 120ms;
 }
 
 .settings-panel button:hover {
@@ -289,16 +290,9 @@
 }
 
 .segmented button {
-  font-family: var(--mono);
   font-size: 12px;
-  padding: 6px 10px;
-  min-height: 28px;
   border: 1px solid transparent;
-  border-radius: 4px;
   background: none;
-  color: var(--dim);
-  cursor: pointer;
-  transition: border-color 120ms, color 120ms, background 120ms;
 }
 
 .segmented button:hover {
