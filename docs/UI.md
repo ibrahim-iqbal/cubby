@@ -193,7 +193,20 @@ the cozy end of the range.
 
 - Every icon-only control has an `aria-label`; the type glyphs are
   decorative (`aria-hidden`).
+- Both command bar inputs have an explicit `aria-label` (ask / dump) —
+  `placeholder` alone is never the accessible name.
+- The `local · offline · nothing uploaded` status line is real product
+  information, not decoration — it is not `aria-hidden`.
 - Full keyboard operation (the keyboard contract in SPEC §2).
 - Visible focus ring on the bar and the selected row; never suppressed.
 - Respect `prefers-reduced-motion` on every animation.
+- All interactive controls meet the WCAG 2.2 AA 24×24px touch-target
+  minimum (verified live: delete 26×26, settings 75×28, tabs 44×28).
+- The results list and ask/dump toggle use plain semantics (`<ul>`/`<li>`,
+  `aria-pressed` buttons) rather than `listbox`/`tablist` roles — those
+  ARIA patterns require wiring (`aria-activedescendant`, roving tabindex,
+  linked tabpanels) this app doesn't implement; a half-applied pattern is
+  worse than a plain one.
+- Model-load progress is in an `aria-live="polite"` region so screen
+  reader users hear it without re-polling.
 - AA contrast on all 5 themes, both modes (D4 gate).

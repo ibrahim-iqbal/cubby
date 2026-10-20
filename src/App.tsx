@@ -217,9 +217,7 @@ function App() {
       <header className="topbar">
         <span className="wordmark">cubby.</span>
         <div className="topbar-right">
-          <span className="status-line" aria-hidden="true">
-            ● local · offline · nothing uploaded
-          </span>
+          <span className="status-line">● local · offline · nothing uploaded</span>
           <button
             className="settings-btn"
             onClick={() => setShowSettings((v) => !v)}
@@ -299,6 +297,7 @@ function App() {
             ref={barRef}
             className="bar-input"
             placeholder="ask your cubby…"
+            aria-label="Ask your cubby"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={onBarKeyDown}
@@ -309,6 +308,7 @@ function App() {
             ref={barRef}
             className="bar-input"
             placeholder="paste a link, note, address, snippet — anything. press ↩ and forget it."
+            aria-label="Dump text, link, or anything else"
             value={dumpText}
             onChange={(e) => setDumpText(e.target.value)}
             onKeyDown={onBarKeyDown}
@@ -320,11 +320,11 @@ function App() {
         </span>
       </div>
 
-      <div className="segmented" role="tablist">
-        <button role="tab" aria-selected={mode === 'ask'} className={mode === 'ask' ? 'active' : ''} onClick={() => setMode('ask')}>
+      <div className="segmented">
+        <button aria-pressed={mode === 'ask'} className={mode === 'ask' ? 'active' : ''} onClick={() => setMode('ask')}>
           ask
         </button>
-        <button role="tab" aria-selected={mode === 'dump'} className={mode === 'dump' ? 'active' : ''} onClick={() => setMode('dump')}>
+        <button aria-pressed={mode === 'dump'} className={mode === 'dump' ? 'active' : ''} onClick={() => setMode('dump')}>
           dump
         </button>
       </div>
@@ -334,7 +334,7 @@ function App() {
           <div className="meta-line">
             {items.length === 0 ? 'nothing saved yet — switch to dump and paste anything.' : 'recent · paste to add, type to ask'}
           </div>
-          <ul className="results" role="listbox" aria-label="Search results">
+          <ul className="results" aria-label="Search results">
             {hits.length === 0 && query.trim() && (
               <li className="empty" role="status">nothing close in your cubby — try other words. it matches meaning, not exact text.</li>
             )}
@@ -342,8 +342,7 @@ function App() {
               <li
                 key={hit.item.id}
                 className={i === selected ? 'row selected' : 'row'}
-                role="option"
-                aria-selected={i === selected}
+                aria-current={i === selected ? 'true' : undefined}
                 onClick={() => handleCopy(hit.item)}
               >
                 <span className="glyph" aria-hidden="true">
@@ -379,7 +378,7 @@ function App() {
         </div>
       )}
 
-      <footer className="footer">
+      <footer className="footer" aria-live="polite">
         {footerLabel} · {items.length} items
       </footer>
     </div>

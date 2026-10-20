@@ -38,7 +38,8 @@
   background: none;
   border: 1px solid var(--line);
   border-radius: 4px;
-  padding: 3px 8px;
+  padding: 6px 10px;
+  min-height: 28px;
   cursor: pointer;
   transition: border-color 120ms, color 120ms;
 }
@@ -87,7 +88,8 @@
 .settings-panel button {
   font-family: var(--mono);
   font-size: 11px;
-  padding: 4px 10px;
+  padding: 6px 10px;
+  min-height: 28px;
   border: 1px solid var(--line);
   border-radius: 4px;
   background: var(--bg);
@@ -209,7 +211,8 @@
 .segmented button {
   font-family: var(--mono);
   font-size: 12px;
-  padding: 4px 10px;
+  padding: 6px 10px;
+  min-height: 28px;
   border: 1px solid transparent;
   border-radius: 4px;
   background: none;
@@ -310,15 +313,19 @@
 
 .delete-btn {
   font-family: var(--mono);
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1;
   color: var(--dimmer);
   background: none;
   border: none;
-  border-radius: 3px;
+  border-radius: 4px;
   cursor: pointer;
   flex-shrink: 0;
-  padding: 2px 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  min-height: 26px;
   margin-left: 2px;
   transition: color 100ms, background 100ms;
 }
