@@ -11,6 +11,7 @@ type Mode = 'ask' | 'dump';
 
 const THEMES: ThemeName[] = ['terminal', 'paper', 'mono', 'cobalt', 'ember'];
 const QUERY_DEBOUNCE_MS = 120;
+const ROW_EXIT_MS = 160; // keep in sync with .row-collapse transition duration in App.css
 
 const EXAMPLES = [
   'wifi password: Sunflower92',
@@ -38,6 +39,18 @@ function timeAgo(ms: number): string {
   return `${Math.floor(h / 24)}d ago`;
 }
 
+// Two-way smooth open/close via CSS grid-rows (0fr <-> 1fr) — no JS height
+// measurement, no animation library. Content stays mounted so collapsing
+// is a real animation, not an instant unmount; `inert` keeps it out of
+// tab order and screen readers while closed.
+function Collapse({ open, children }: { open: boolean; children: React.ReactNode }) {
+  return (
+    <div className={`collapse${open ? ' open' : ''}`} inert={!open}>
+      <div className="collapse-inner">{children}</div>
+    </div>
+  );
+}
+
 function App() {
   const [settings, setSettings] = useState<Settings>(() => loadSettings());
   const [items, setItems] = useState<CubbyItem[]>([]);
@@ -52,6 +65,7 @@ function App() {
   const [queryVector, setQueryVector] = useState<Float32Array | null>(null);
   const [undoItem, setUndoItem] = useState<CubbyItem | null>(null);
   const [pendingImport, setPendingImport] = useState<{ text: string } | null>(null);
+  const [removingIds, setRemovingIds] = useState<Set<string>>(new Set());
   const [showIntro, setShowIntro] = useState(() => {
     try {
       return localStorage.getItem('cubby.seenIntro.v1') !== '1';
@@ -163,11 +177,19 @@ function App() {
   }
 
   async function handleDelete(item: CubbyItem) {
-    setItems((prev) => prev.filter((i) => i.id !== item.id));
+    setRemovingIds((prev) => new Set(prev).add(item.id));
     await deleteItem(item.id);
-    setUndoItem(item);
-    clearTimeout(undoTimer.current);
-    undoTimer.current = setTimeout(() => setUndoItem(null), 5000);
+    setTimeout(() => {
+      setItems((prev) => prev.filter((i) => i.id !== item.id));
+      setRemovingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(item.id);
+        return next;
+      });
+      setUndoItem(item);
+      clearTimeout(undoTimer.current);
+      undoTimer.current = setTimeout(() => setUndoItem(null), 5000);
+    }, ROW_EXIT_MS);
   }
 
   async function handleUndo() {
@@ -289,7 +311,7 @@ function App() {
         </div>
       </header>
 
-      {showIntro && (
+      <Collapse open={showIntro}>
         <div className="intro">
           <p>
             <strong>dump</strong> anything — no tags, no title, just paste and press ↩.{' '}
@@ -298,9 +320,9 @@ function App() {
           </p>
           <button onClick={dismissIntro}>got it</button>
         </div>
-      )}
+      </Collapse>
 
-      {showSettings && (
+      <Collapse open={showSettings}>
         <div className="settings-panel" role="group" aria-label="Settings">
           <div className="settings-section">
             <span className="settings-label">theme</span>
@@ -351,7 +373,7 @@ function App() {
                 clear all
               </button>
             </div>
-            {pendingImport && (
+            <Collapse open={!!pendingImport}>
               <div className="import-choice">
                 <span>merge with your cubby, or replace it entirely?</span>
                 <div className="settings-row">
@@ -362,23 +384,23 @@ function App() {
                   <button onClick={() => setPendingImport(null)}>cancel</button>
                 </div>
               </div>
-            )}
+            </Collapse>
           </div>
         </div>
-      )}
+      </Collapse>
 
-      {modelStatus === 'loading' && (
+      <Collapse open={modelStatus === 'loading'}>
         <div className="banner">
           setting up on-device search… this downloads once and stays on your device
           <div className="progress-track">
             <div className="progress-fill" style={{ width: `${Math.round(modelProgress * 100)}%` }} />
           </div>
         </div>
-      )}
+      </Collapse>
 
-      {modelStatus === 'unavailable' && (
+      <Collapse open={modelStatus === 'unavailable'}>
         <div className="banner">on-device search unavailable here; searching by keyword. your data still never leaves the device.</div>
-      )}
+      </Collapse>
 
       <div className="bar">
         <span className="prompt" aria-hidden="true">
@@ -455,32 +477,33 @@ function App() {
               </li>
             )}
             {(mode === 'ask' ? hits : recentHits).map((hit, i) => (
-              <li
-                key={hit.item.id}
-                className={mode === 'ask' && i === selected ? 'row selected' : 'row'}
-                aria-current={mode === 'ask' && i === selected ? 'true' : undefined}
-                onClick={() => handleCopy(hit.item)}
-              >
-                <span className="glyph" aria-hidden="true">
-                  {hit.item.type}
-                </span>
-                <div className="content">
-                  <div className="text">{hit.item.text}</div>
-                  <div className="source">
-                    {copied === hit.item.id ? '✓ copied' : `${hit.item.type} · ${timeAgo(hit.item.createdAt)}`}
-                  </div>
-                </div>
-                {mode === 'ask' && <span className="match">{Math.round(hit.score * 100)}%</span>}
-                <button
-                  className="delete-btn"
-                  aria-label={`Delete "${hit.item.text.slice(0, 40)}"`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDelete(hit.item);
-                  }}
+              <li key={hit.item.id} className={`row-collapse${removingIds.has(hit.item.id) ? '' : ' open'}`}>
+                <div
+                  className={mode === 'ask' && i === selected ? 'row selected' : 'row'}
+                  aria-current={mode === 'ask' && i === selected ? 'true' : undefined}
+                  onClick={() => handleCopy(hit.item)}
                 >
-                  ×
-                </button>
+                  <span className="glyph" aria-hidden="true">
+                    {hit.item.type}
+                  </span>
+                  <div className="content">
+                    <div className="text">{hit.item.text}</div>
+                    <div className="source">
+                      {copied === hit.item.id ? '✓ copied' : `${hit.item.type} · ${timeAgo(hit.item.createdAt)}`}
+                    </div>
+                  </div>
+                  {mode === 'ask' && <span className="match">{Math.round(hit.score * 100)}%</span>}
+                  <button
+                    className="delete-btn"
+                    aria-label={`Delete "${hit.item.text.slice(0, 40)}"`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(hit.item);
+                    }}
+                  >
+                    ×
+                  </button>
+                </div>
               </li>
             ))}
           </ul>

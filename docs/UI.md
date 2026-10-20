@@ -69,6 +69,22 @@ machine, nothing uploaded" on sight.
 - Theme switch: an instant swap (no cross-fade — themes are a setting,
   not a transition). Optional ~120ms color-token transition, off under
   reduced-motion.
+- **Two-way collapse** (settings panel, the intro/loading/unavailable
+  banners, the import merge/replace choice): real height animation both
+  opening *and* closing, via CSS `grid-template-rows` (`0fr` ↔ `1fr`) —
+  no JS height measurement, no animation library. Content stays mounted
+  and goes `inert` while closed. Previously these only animated in on
+  mount; closing was an instant cut, which is the asymmetry that made
+  the UI feel like it was "cutting" rather than moving.
+- **Row removal** (delete): the row height-collapses and fades over
+  ~160ms before actually leaving the list — matches the entrance
+  treatment instead of vanishing instantly. Same CSS technique, scoped
+  per-row.
+- **Delete button hover-reveal**: hidden by default, reveals on row
+  hover/focus — declutters the idle row (a control used rarely doesn't
+  need to compete for attention at rest). Gated to `(hover: hover)`
+  devices only; touch devices (no real hover state to discover it with)
+  always show it.
 - No decorative glow, gradient, mesh, or shadow-as-ornament.
 
 ## Theme architecture
