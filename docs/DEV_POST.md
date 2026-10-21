@@ -5,7 +5,7 @@
 {% embed https://github.com/ibrahim-iqbal/cubby/raw/main/docs/design/post/00-intro.mp4 %}
 <!-- ASSET 10 (intro video, 10s loop) — raw GitHub URL works as DEV embed source once repo is public -->
 
-![cubby — the UI at a glance](./design/post/01-hero.png)
+![cubby — the UI at a glance](./design/post/01-hero.jpg)
 <!-- ASSET 2 (hero screenshot) — see docs/DEV_POST_ASSETS.md -->
 
 ## The number first
@@ -241,7 +241,7 @@ against WCAG AA for both body text and the one accent color
 isn't a skin choice; it's doing work — it's telling you "this runs on my
 machine" before you've read a word of copy.
 
-![All 5 themes — terminal, paper, mono, cobalt, ember — in dark mode](./design/post/03-themes.png)
+![All 5 themes — terminal, paper, mono, cobalt, ember — in dark mode](./design/post/03-themes.jpg)
 <!-- ASSET 8 (theme gallery) — see docs/DEV_POST_ASSETS.md -->
 
 ## Share-to-cubby
