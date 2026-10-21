@@ -36,7 +36,7 @@ own browser, in about 15 seconds:
 "Private by policy" asks you to trust me. "Private because the service
 worker caches everything and there's no backend to talk to" doesn't.
 
-![DevTools Network tab, empty after the model load](./design/post/05-network-proof.png)
+![DevTools Network tab, empty after the model load](./design/post/05-network-proof.jpg)
 <!-- ASSET 11 (network tab proof) — screenshot after model cached, dump + ask → zero rows -->
 
 ## The problem I actually have
@@ -254,7 +254,7 @@ absent — on iOS it falls back to the manual paste box, which was always
 going to work regardless. I'd rather say that outright than imply
 something that isn't true for half the phones people own.
 
-![Android share sheet → cubby → the item lands](./design/post/04-share-sheet.png)
+![Android share sheet → cubby → the item lands](./design/post/04-share-sheet.jpg)
 <!-- ASSET 9 (mobile share) — see docs/DEV_POST_ASSETS.md -->
 
 ## What's honestly still missing

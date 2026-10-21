@@ -34,7 +34,7 @@ Everyone has the "I know I saved that somewhere" problem. You copy ~50 things a 
 - **Fully local.** Your dumps never touch a server. The model is a file the app downloads once (~300 MB) and runs in the tab. No account, no API key, no telemetry, no network call after first load — checkable in the network tab.
 
   <p align="center">
-    <img src="./docs/design/post/05-network-proof.png" alt="DevTools Network tab empty after the model loads — dump and ask produce zero outbound requests" width="720">
+    <img src="./docs/design/post/05-network-proof.jpg" alt="DevTools Network tab empty after the model loads — dump and ask produce zero outbound requests" width="720">
     <br>
     <sub><em>Open DevTools → Network, dump + ask + change theme → zero rows after the first-load model fetch. Verifiable claim, not a promise.</em></sub>
   </p>
@@ -43,7 +43,7 @@ Everyone has the "I know I saved that somewhere" problem. You copy ~50 things a 
 - **Share-to-cubby.** On Android, the OS Share sheet writes straight into cubby — no app opening, no pasting. (iOS Safari's Web Share Target support is weak; see [RISKS.md R8](./docs/RISKS.md).)
 
   <p align="center">
-    <img src="./docs/design/post/04-share-sheet.png" alt="Android Share sheet → cubby → item lands in your bank" width="320">
+    <img src="./docs/design/post/04-share-sheet.jpg" alt="Android Share sheet → cubby → item lands in your bank" width="320">
     <br>
     <sub><em>Share any text or link from any Android app → cubby. Writes to the same store as a manual dump.</em></sub>
   </p>
