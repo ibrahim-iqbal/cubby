@@ -13,6 +13,14 @@
 
 </div>
 
+<p align="center">
+  <img src="./docs/design/post/01-hero.jpg" alt="cubby — the UI at a glance" width="820">
+</p>
+
+<p align="center">
+  <sub><em>dump anything. ask it back in your own words. ranked by meaning. nothing uploaded.</em></sub>
+</p>
+
 ---
 
 Everyone has the "I know I saved that somewhere" problem. You copy ~50 things a day and lose most of them — a wifi password, a `docker run` incantation, a flight number, that one address. Every notes app's fix is the same: *organize it*. Folders, tags, a system you abandon by week two.
@@ -24,11 +32,39 @@ Everyone has the "I know I saved that somewhere" problem. You copy ~50 things a 
 ## Features
 
 - **Fully local.** Your dumps never touch a server. The model is a file the app downloads once (~300 MB) and runs in the tab. No account, no API key, no telemetry, no network call after first load — checkable in the network tab.
+
+  <p align="center">
+    <img src="./docs/design/post/05-network-proof.png" alt="DevTools Network tab empty after the model loads — dump and ask produce zero outbound requests" width="720">
+    <br>
+    <sub><em>Open DevTools → Network, dump + ask + change theme → zero rows after the first-load model fetch. Verifiable claim, not a promise.</em></sub>
+  </p>
 - **Semantic + lexical hybrid search.** `0.7 · cosine + 0.3 · lexical`, so a paraphrased query finds its target *and* an exact keyword never loses to a weak semantic guess. Measured recall@3 of **20/20** on a fixed test set vs. keyword's 14/20 — [full honesty table here](./test/queries.md).
 - **Offline-first PWA.** Service worker caches the app shell + model weights; search keeps working on a plane.
 - **Share-to-cubby.** On Android, the OS Share sheet writes straight into cubby — no app opening, no pasting. (iOS Safari's Web Share Target support is weak; see [RISKS.md R8](./docs/RISKS.md).)
+
+  <p align="center">
+    <img src="./docs/design/post/04-share-sheet.png" alt="Android Share sheet → cubby → item lands in your bank" width="320">
+    <br>
+    <sub><em>Share any text or link from any Android app → cubby. Writes to the same store as a manual dump.</em></sub>
+  </p>
 - **Five themes × light/dark**, all WCAG AA–verified (`test/contrast.mjs`). Terminal / paper / mono / cobalt / ember.
 - **Keyboard-first.** `Cmd/Ctrl+K` to focus, arrows to navigate, `Enter` to copy, `Esc` to clear. No mouse needed for the full dump → ask → copy loop.
+
+<p align="center">
+  <img src="./docs/design/post/03-themes.jpg" alt="Five themes — terminal, paper, mono, cobalt, ember — in dark and light modes" width="820">
+</p>
+
+<p align="center">
+  <sub><em>5 themes × light/dark. Each pair passes WCAG AA.</em></sub>
+</p>
+
+## Demo
+
+<p align="center">
+  <img src="./docs/design/post/02-loop.gif" alt="dump → ask → copy loop in under 5 seconds" width="720">
+  <br>
+  <sub><em>dump → ask → copy, in under 5 seconds. Also the <a href="./docs/design/post/00-intro.mp4">10-second intro video</a>.</em></sub>
+</p>
 
 ## Try it
 

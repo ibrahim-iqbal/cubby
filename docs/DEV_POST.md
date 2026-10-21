@@ -21,6 +21,24 @@ that means *"landlord's number: 555-0199, text don't call."*
 
 That gap is the whole pitch.
 
+## You can check the "nothing uploaded" claim yourself
+
+Every local-first project claims this. Here's how to verify mine, in your
+own browser, in about 15 seconds:
+
+1. Open [the live app](https://cubby.render.com) *(deploy pending)*
+2. Open DevTools → Network tab
+3. Hard refresh once. You'll see model shards fetched from
+   `huggingface.co`. That's the one-time ~300MB download.
+4. Clear the Network log. Dump anything. Ask anything. Change the theme.
+   Export your data. **Zero outbound requests.** Not one.
+
+"Private by policy" asks you to trust me. "Private because the service
+worker caches everything and there's no backend to talk to" doesn't.
+
+![DevTools Network tab, empty after the model load](./design/post/05-network-proof.png)
+<!-- ASSET 11 (network tab proof) — screenshot after model cached, dump + ask → zero rows -->
+
 ## The problem I actually have
 
 I copy and paste constantly. A wifi password here, a `docker run` one-off
@@ -59,6 +77,16 @@ ranking blend does the rest.
 That inversion is the real idea here, more than the UI or the feature
 list: play to the model's strength instead of its weakness, and the
 small-model risk mostly disappears.
+
+**Who does what, and why.** Splitting the work by how wrong each part is
+allowed to be:
+
+| Job | Who does it | Why |
+|---|---|---|
+| Finding items that share your exact words | Plain lexical overlap (prefix / substring / exact) | Must be exact. Keyword hits are the floor the model can't drop below |
+| Finding items that mean the same thing in different words | **EmbeddingGemma 300M, in the browser** | This is the one thing a small model actually earns its place for |
+| Deciding which wins when they disagree | A fixed `0.7·semantic + 0.3·lexical` blend | A tuned weight, not a judgment call per query |
+| Writing anything in your results | Nobody. The model never generates a word | Small models hallucinate; retrieval doesn't |
 
 Here's the whole system — everything inside the dashed box is on your
 device, forever:
@@ -172,6 +200,36 @@ flowchart TB
     blend --> rank[sorted top 8 results]
 ```
 
+## Shipping a 300MB model to the browser, honestly
+
+The weird parts, the ones that nearly broke the build:
+
+- **The model is ~300MB on first load.** That's non-trivial. The service
+  worker caches it permanently via `vite-plugin-pwa`; second load is
+  instant and fully offline. On a cold install over a bad connection it's
+  a real wait, and the UI says so plainly — a terminal-style log stream
+  shows every shard as it lands, with sizes. No fake progress bar.
+- **Matryoshka truncation to 256 dimensions.** EmbeddingGemma outputs
+  768-dim vectors; I truncate to the first 256 and renormalize. That's
+  the model's documented Matryoshka property, not a hack. Memory per item
+  drops 3×, recall is unchanged on the honesty table.
+- **Query vs document prefix.** EmbeddingGemma expects task prefixes:
+  `task: search result | query: ` for the ask, `title: none | text: `
+  for the dump. Dropping these drops recall meaningfully. The prefixes
+  are hardcoded with a comment pointing at the model card.
+- **Lexical had to match characters, not words.** First version used
+  whole-token equality. Live-as-you-type search broke — typing "doc"
+  showed nothing until you finished "docker". Rewrote to score exact
+  (1.0), prefix (0.9), substring (0.6) per query token, max across
+  matches. Three lines, massive UX difference.
+- **iOS Safari's Web Share Target is weak to absent.** Said this plainly
+  in the Share section below. On Android it works clean. On iOS it falls
+  back to paste, which was always going to work regardless.
+- **Fallback when the model fails to load.** cubby degrades to
+  lexical-only, labeled honestly in the footer and the side-panel model
+  card. You can still dump, you can still ask, you just lose the
+  paraphrase layer.
+
 ## The UI argues the pitch, not just looks nice
 
 The whole thing is monospace, a `❯` prompt, a blinking caret, a quiet
@@ -212,9 +270,16 @@ something that isn't true for half the phones people own.
 
 ## Prize categories
 
-- **Best Use of Gemma** — EmbeddingGemma is the entire retrieval engine;
-  every ranked result exists because the model embedded it, on-device.
-- **Best Use of Render** — static site, deploys on push.
+- **Best Use of Gemma** — EmbeddingGemma 300M is the entire retrieval
+  engine. Every ranked result exists because the model embedded it,
+  on-device, in the browser tab, with task-prefixed inputs and
+  Matryoshka truncation to 256 dimensions. The model never generates a
+  word; it is used for the one thing a small open model is actually
+  reliable at.
+- **Best Use of Render** — static site, zero backend, auto-deploys on
+  push. Zero outbound requests after a single HuggingFace model fetch,
+  cached permanently by the service worker — verifiable in the reader's
+  own DevTools in 15 seconds, per the steps above.
 
 ## Try it / the code
 
