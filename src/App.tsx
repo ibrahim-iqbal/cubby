@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { CubbyItem, Settings, ThemeName } from './types';
 import { applyTheme, loadSettings, saveSettings } from './lib/settings';
 import { getAllItems, newItem, saveItem, deleteItem, clearAll, exportJSON, importJSON } from './lib/storage';
@@ -123,7 +124,11 @@ function Overlay({
   }, [open, onClose]);
 
   if (!open) return null;
-  return (
+  // Portal to body — the shell has its own stacking context (z-index: 1 for
+  // the corner-grid decoration), which traps nested fixed children beneath
+  // siblings of the shell. Portal escapes that trap so the backdrop and
+  // panel paint above every page element unconditionally.
+  return createPortal(
     <div className="overlay-root" role="presentation">
       <div className="overlay-backdrop" onClick={onClose} aria-hidden="true" />
       <div
@@ -141,7 +146,8 @@ function Overlay({
         </div>
         <div className="overlay-body">{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
