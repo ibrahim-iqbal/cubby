@@ -26,3 +26,5 @@ docs/design/post/_*.html
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+docs/design/post/cover-clean.png
+docs/design/post/cover-delogo.png
