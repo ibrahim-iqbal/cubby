@@ -66,7 +66,7 @@ const QUESTIONS: Array<{ q: string; a: React.ReactNode }> = [
         On a fixed 20-item test set, semantic recall@3 is 20/20 vs. 14/20 for plain keyword. Full
         methodology and the six keyword-misses are in{' '}
         <a
-          href="https://github.com/ibrahim-iqbal/cubby/blob/main/test/queries.md"
+          href="https://github.com/ibrahim-iqbal/cubby-hf26-wk3/blob/main/test/queries.md"
           target="_blank"
           rel="noreferrer"
         >

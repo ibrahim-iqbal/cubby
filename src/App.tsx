@@ -868,7 +868,7 @@ function App() {
             faq
           </button>
           <span className="footer-dot">·</span>
-          <a href="https://github.com/ibrahim-iqbal/cubby" target="_blank" rel="noreferrer" className="footer-link">
+          <a href="https://github.com/ibrahim-iqbal/cubby-hf26-wk3" target="_blank" rel="noreferrer" className="footer-link">
             github
           </a>
         </span>

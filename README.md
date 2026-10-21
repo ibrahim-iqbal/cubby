@@ -73,7 +73,7 @@ Everyone has the "I know I saved that somewhere" problem. You copy ~50 things a 
 Or run locally:
 
 ```bash
-git clone https://github.com/ibrahim-iqbal/cubby.git
+git clone https://github.com/ibrahim-iqbal/cubby-hf26-wk3.git
 cd cubby
 npm ci
 npm run dev

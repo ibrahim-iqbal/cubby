@@ -57,8 +57,8 @@ export function PolicyContent() {
       <h2>contact</h2>
       <p>
         Issues or questions:{' '}
-        <a href="https://github.com/ibrahim-iqbal/cubby/issues" target="_blank" rel="noreferrer">
-          github.com/ibrahim-iqbal/cubby/issues
+        <a href="https://github.com/ibrahim-iqbal/cubby-hf26-wk3/issues" target="_blank" rel="noreferrer">
+          github.com/ibrahim-iqbal/cubby-hf26-wk3/issues
         </a>
         .
       </p>
