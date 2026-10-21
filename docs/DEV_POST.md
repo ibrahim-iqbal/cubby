@@ -283,9 +283,8 @@ something that isn't true for half the phones people own.
 
 ## Try it / the code
 
-- Live: *[pending deploy]*
-- Repo: *[pending — repo is currently private; will be made public before
-  the submission window]*
+- Live: <https://cubby-6mn8.onrender.com>
+- Repo: <https://github.com/ibrahim-iqbal/cubby-hf26-wk3>
 - Full build docs, the honesty table, and the risk register with its
   mitigation ladders are all in the repo's `docs/` folder — nothing here
   was assumed, it's all checkable.
