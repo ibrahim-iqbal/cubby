@@ -17,6 +17,10 @@ public/models/
 !.vscode/extensions.json
 .idea/
 *.swp
+.claude/
+
+# post-asset scratch (composites assembled in-browser)
+docs/design/post/_*.html
 
 # logs
 npm-debug.log*

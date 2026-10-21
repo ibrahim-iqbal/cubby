@@ -566,6 +566,7 @@ function App() {
             ❯
           </span>
           <span className="wordmark">cubby.</span>
+          <span className="tagline">dump &amp; ask — a local memory bank. nothing uploaded.</span>
         </span>
         <div className="topbar-right">
           <span className="status-line">● local · offline · nothing uploaded</span>
@@ -587,9 +588,18 @@ function App() {
       <Collapse open={showIntro}>
         <div className="intro">
           <p>
+            a local memory bank for things you'd otherwise lose in a notes app.{' '}
             <strong>dump</strong> anything — no tags, no title, just paste and press ↩.{' '}
-            <strong>ask</strong> for it back later, in your own words — it matches by meaning, not
-            exact text.
+            <strong>ask</strong> for it back later, in your own words — matched by{' '}
+            <em>meaning</em>, not exact text, by{' '}
+            <a
+              href="https://huggingface.co/onnx-community/embeddinggemma-300m-ONNX"
+              target="_blank"
+              rel="noreferrer"
+            >
+              EmbeddingGemma 300M
+            </a>{' '}
+            running in this tab. no server, no sign-in, nothing uploaded.
           </p>
           <button onClick={dismissIntro}>got it</button>
         </div>
@@ -864,6 +874,12 @@ function App() {
         </span>
         <span className="footer-status">
           {footerLabel} · {items.length} items
+        </span>
+        <span className="footer-signature">
+          crafted by{' '}
+          <a href="https://github.com/ibrahim-iqbal" target="_blank" rel="noreferrer">
+            ibrahim-iqbal
+          </a>
         </span>
       </footer>
       </div>
