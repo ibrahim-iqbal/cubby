@@ -26,7 +26,7 @@ That gap is the whole pitch.
 Every local-first project claims this. Here's how to verify mine, in your
 own browser, in about 15 seconds:
 
-1. Open [the live app](https://cubby.render.com) *(deploy pending)*
+1. Open [the live app](https://cubby-6mn8.onrender.com)
 2. Open DevTools → Network tab
 3. Hard refresh once. You'll see model shards fetched from
    `huggingface.co`. That's the one-time ~300MB download.

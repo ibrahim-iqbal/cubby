@@ -9,7 +9,7 @@
 [![Powered by EmbeddingGemma](https://img.shields.io/badge/powered%20by-EmbeddingGemma-7ee0b8.svg)](https://huggingface.co/onnx-community/embeddinggemma-300m-ONNX)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-7ee0b8.svg)](#contributing)
 
-[**Live demo**](https://cubby.onrender.com) · [**DEV write-up**](./docs/DEV_POST.md) · [**Architecture**](./docs/ARCHITECTURE.md) · [**Honesty table**](./test/queries.md)
+[**Live demo**](https://cubby-6mn8.onrender.com) · [**DEV write-up**](./docs/DEV_POST.md) · [**Architecture**](./docs/ARCHITECTURE.md) · [**Honesty table**](./test/queries.md)
 
 </div>
 
@@ -68,7 +68,7 @@ Everyone has the "I know I saved that somewhere" problem. You copy ~50 things a 
 
 ## Try it
 
-**Live:** <https://cubby.onrender.com>
+**Live:** <https://cubby-6mn8.onrender.com>
 
 Or run locally:
 
