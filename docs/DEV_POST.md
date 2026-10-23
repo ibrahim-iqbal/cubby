@@ -25,7 +25,7 @@ A 10-second intro clip is [in the repo](https://github.com/ibrahim-iqbal/cubby-h
 
 ## Code
 
-{% embed https://github.com/ibrahim-iqbal/cubby-hf26-wk3 %}
+**Repo:** <https://github.com/ibrahim-iqbal/cubby-hf26-wk3>
 
 MIT licensed. React 19 + Vite, a static site with no backend.
 
