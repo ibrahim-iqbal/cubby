@@ -6,8 +6,10 @@ export function PolicyContent() {
       <h2>what leaves your device</h2>
       <p>
         On first load, one HTTPS request to <code>huggingface.co</code> for the EmbeddingGemma model
-        shards (~300MB total). The service worker caches those shards permanently; they are never
-        requested again from that device.
+        shards (~300MB total). The service worker caches those shards, so the weights are not
+        downloaded again. A small model config file may still be requested from the same host each
+        time the page loads. Like any web request, this lets Hugging Face see your IP address and
+        browser.
       </p>
 
       <h2>what stays</h2>
@@ -18,16 +20,17 @@ export function PolicyContent() {
 
       <h2>what's never sent</h2>
       <p>
-        Your dumps, your queries, your clipboard, your settings, your IP, your usage patterns —
-        none of it is transmitted anywhere. No analytics. No telemetry. No error reporting. No
-        cookies. No pings. There is no server to send them to.
+        Your dumps, your queries, your clipboard, your settings, your usage patterns — none of it
+        is transmitted anywhere. No analytics. No telemetry. No error reporting. No cookies. There
+        is no cubby server to send them to.
       </p>
 
       <h2>how to verify</h2>
       <p>
-        Open DevTools → Network tab → use the app. After the one-time model fetch (or immediately,
-        on a cached visit), you will see zero outbound requests. This claim is checkable in your
-        own browser, not just stated here.
+        Open DevTools → Network tab and let the page load. Then clear the log and use the app:
+        dump a note, ask a question, change the theme. You will see no new requests. The only
+        traffic is at page load, and it goes to the model host. This is checkable in your own
+        browser, not just stated here.
       </p>
 
       <h2>if you delete the app</h2>
