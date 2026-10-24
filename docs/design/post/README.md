@@ -1,12 +1,11 @@
 # cubby — DEV post assets
 
-Capture / generate the files listed in `../DEV_POST_ASSETS.md` and drop them here. Expected files:
+All real captures of the live app (headless Chrome, 10 sample notes), except the two diagrams and the intro clip.
 
-- `cover.png` — DEV cover image (Gemini-generated, 1000×420)
-- `01-hero.png` — hero screenshot of the running UI
-- `02-loop.gif` — ~5 s demo of the dump→ask→copy loop
-- `03-themes.png` — 5 themes stitched into one image
-- `04-share-sheet.png`, `04-share-landed.png` — mobile Share-to-cubby capture
-- `00-intro.mp4` / `.webm` — optional Gemini-generated intro video
-
-All generated / captured locally. Nothing uploaded anywhere until the post is published to DEV.to.
+- `cover.jpg` — DEV cover, built from the real UI capture
+- `01-hero.jpg` — ask result, terminal dark
+- `02-loop.gif` — typing a query, best match rises to the top
+- `03-themes.jpg` — 5 themes, dark (top) and light (bottom)
+- `06-mobile.jpg` — 390px-wide layout
+- `diagram-architecture.png`, `diagram-ask.png` — flow diagrams
+- `00-intro.mp4` — intro clip
