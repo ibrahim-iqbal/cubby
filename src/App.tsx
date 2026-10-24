@@ -779,7 +779,11 @@ function App() {
       ) : (
         <>
           <div className="meta-line">
-            {mode === 'ask' ? 'recent · paste to add, type to ask' : 'your cubby · switch to ask to search it'}
+            {mode === 'ask'
+              ? query.trim()
+                ? `${hits.length} ${hits.length === 1 ? 'match' : 'matches'}, best first`
+                : 'recent · paste to add, type to ask'
+              : 'your cubby · switch to ask to search it'}
             {' — '}
             {typeCounts(items)}
           </div>
